@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FarmTalkAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --primary-bg-color: #fdb913;
+            --primary-text-color: white;
+            --secondary-bg-color: #20603d;
+            --button-bg: #000000;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('/image/FarmbackAIBackground.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+        }
+        #chat-container {
+            max-width: 750px;
+            width: 100%;
+            height: 700px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-header {
+            background: var(--primary-bg-color);
+            color: var(--primary-text-color);
+            padding: 1rem;
+            text-align: center;
+        }
+        #chat-box {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: scroll;
+        }
+        .message {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .user-message {
+            text-align: right;
+            background-color: var(--secondary-bg-color);
+            color: var(--primary-text-color);
+        }
+        .bot-message {
+            text-align: left;
+            background-color: var(--primary-bg-color);
+            color: var(--primary-text-color);
+        }
+        #chat-input {
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+        #query {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+        }
+        #send-button {
+            width: 80px;
+            background: var(--button-bg);
+            color: var(--primary-text-color);
+            border: none;
+            cursor: pointer;
+        }
+      #record-button {
+            width: 120px;
+            background: red;
+            color: var(--primary-text-color);
+            border: none;
+            cursor: pointer;
+        }
+        
+    </style>
+</head>
+<body style="background-image: url('/image/FarmbackAIBackground.jpg');" onload="initChat()">
+    <section id="chat-container">
+        <header id="chat-header">FarmTalkAI</header>
+        <article id="chat-box"></article>
+        <form id="chat-input" enctype="multipart/form-data" onsubmit="return false;">
+            <input type="text" id="query" placeholder="What can I do to help you and your farm...?" onkeydown="if (event.keyCode == 13) askQuestion()">
+            <button id="send-button" type="button" onclick="askQuestion()">Ask</button>
+            <button id="record-button" type="button">Start Recording</button>
+            <input type="file" id="audioFileInput" name="audio" accept="audio/wav">
+        </form>
+    </section>
+
+    <script>
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+	
+	function textToSpeech(text) {
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            window.speechSynthesis.speak(msg);
+        }
+        
+        // Initialize media recorder
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    await sendAudioToServer(audioBlob);
+                    audioChunks = [];
+                };
+            })
+            .catch(err => console.error('Error capturing audio.', err));
+        }
+        
+        document.getElementById('record-button').addEventListener('click', () => {
+            if (isRecording) {
+                mediaRecorder.stop();
+                document.getElementById('record-button').textContent = 'Start Recording';
+                document.getElementById('record-button').style.backgroundColor = 'red';
+                isRecording = false;
+            } else {
+                mediaRecorder.start();
+                document.getElementById('record-button').textContent = 'Stop Recording';
+                document.getElementById('record-button').style.backgroundColor = 'green';
+                isRecording = true;
+            }
+        });
+
+        async function sendAudioToServer(audioBlob) {
+            // Existing code for sending audio to the server
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'audio.wav');
+            const response = await fetch('/audio_upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            displayMessage(data.answer, 'bot-message');  // Displaying the message that audio is successfully uploaded and transcribed
+        
+            // New code for sending transcribed text as a query
+            if (data.status === "success") {
+                await sendQueryToServer(data.transcribed_text);
+            }
+        }
+        
+        async function initChat() {
+            loadChatHistory();  // Load chat history here
+            const query = "openmessage";
+            await sendQueryToServer(query);
+        }
+
+        function saveChatHistory() {
+            const chatBox = document.getElementById('chat-box');
+            localStorage.setItem('chatHistory', chatBox.innerHTML);
+        }
+
+        function loadChatHistory() {
+            const savedChat = localStorage.getItem('chatHistory');
+            if (savedChat) {
+                const chatBox = document.getElementById('chat-box');
+                chatBox.innerHTML = savedChat;
+            }
+        }
+	
+	
+        async function askQuestion() {
+            const query = document.getElementById('query').value;
+            await sendQueryToServer(query);
+            document.getElementById('query').value = '';
+        }
+
+        async function sendQueryToServer(query) {
+            document.getElementById('send-button').disabled = false;
+            if (query.toLowerCase() !== 'openmessage') {
+                displayMessage(query, 'user-message');
+            }
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query }),
+            });
+            const data = await response.json();
+            displayMessage(data.answer, 'bot-message');
+	    textToSpeech(data.answer);
+            saveChatHistory();
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+            document.getElementById('send-button').disabled = false;
+        }
+        
+        function displayMessage(message, className) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerText = message;
+            chatBox.appendChild(messageDiv);
+        }
+    </script>
+</body>
+</html>
