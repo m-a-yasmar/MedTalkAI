@@ -68,7 +68,7 @@ def audio_upload():
 def setup_conversation():
     if 'conversation' not in session:
         print("New session being initialised")
-        session['conversation'] = True
+        session['conversation'] = []
         session['returning_user'] = False  # Now the user is a returning user
         session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
         session['displayed_welcome'] = False
