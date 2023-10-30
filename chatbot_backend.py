@@ -68,25 +68,20 @@ def audio_upload():
 def setup_conversation():
     if 'conversation' not in session:
         print("New session being initialised")
-        session['conversation'] = [
-            {"role": "system", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ]
+        session['conversation'] = [ 
+                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
+        ] 
+
         session['returning_user'] = False  # Now the user is a returning user
         session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
-      
+        session['displayed_welcome'] = False
     else:
         print("Existing session found")
         if not session.get('returning_user', False):
-            
-            session['returning_user'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ] # This is a new session, so the user is not returning
-        
-            session['awaiting_decision'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ] 
+            session['returning_user'] = True
+            session['awaiting_decision'] = True  
+        print("Initial session:", session.get('conversation'))
 
-    print("Initial session:", session.get('conversation'))
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
     if len(sentences) > 1:
@@ -117,12 +112,18 @@ def ask():
     system_message = {}
     threshold = 0.9
     query = request.json.get('query')  # Get the query from the request
-    max_tokens = 20  # Set desired token/word limit
+    max_tokens = 50  # Set desired token/word limit
     tokens = query.split()
-    if len(tokens) > max_tokens:
-        answer = "Your query is too long. Please limit it to 20 words or less."
-        return jsonify({"answer": answer})
     
+    if len(tokens) > max_tokens:
+        answer = "Your query is too long. Please limit it to 50 words or less."
+        return jsonify({"answer": answer})
+
+    # Check if this is a new session and if the welcome message has been shown
+    if not session.get('displayed_welcome', True):
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Please state your name and what I may with. Are you here for an appointment or do you have other queries today?"
+        session['displayed_welcome'] = True
+        return jsonify({"answer": welcome_message})
 
     # Check if there's transcribed text in the session
     transcribed_text = session.get('transcribed_text', None)
@@ -152,11 +153,12 @@ def ask():
     
      # Check for "start" query to send a welcome message
     if query.lower() == "openmessage":
-        welcome_message = "Hello and a warm welcome! 🌟 I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Please state your name and what I may with. Are you here for an appointment or do you have other queries today?"
 
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         return jsonify({"answer": welcome_message})
-        
+
+  
     # Check for exit words and break the session if found
     if any(word.lower() in query.lower() for word in exit_words):
         session.clear()  # Clear the session
@@ -169,14 +171,12 @@ def ask():
     if len(query.split()) < 2:
         last_assistant_message = next((message['content'] for message in reversed(session['conversation']) if message['role'] == 'assistant'), None)
         print("Last assistant message:", last_assistant_message)
-        
+    
         if last_assistant_message:
-            system_message = {
-                "role": "assistant",
-                "content": f"The user's query seems incomplete. Ask the user an open ended question. Refer back to your last message: '{last_assistant_message}' to better interpret what they might be asking."
-            }
-            if system_message:
-                session['conversation'].append(system_message)
+            system_message_content = f"The user's query seems incomplete. Ask the user an open-ended question. Refer back to your last message: '{last_assistant_message}' to better interpret what they might be asking."
+            session['conversation'].append({"role": "assistant", "content": system_message_content})
+            return jsonify({"answer": system_message_content})
+
     predefined_vectors = vectorizer.transform(predefined_answers.keys())
     similarity_scores = cosine_similarity(query_vector, predefined_vectors).flatten()
     max_index = similarity_scores.argmax()
@@ -192,7 +192,7 @@ def ask():
             "Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}",
             "Content-Type": "application/json"
         }
-        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you will kindly ask the patient if they would like to discuss their concerns in more detail. This information will be used to ensure that their visit is efficient and that the doctor or dentist is well-prepared to address their needs. You always communicate with a reassuring tone, ensuring confidentiality and handling sensitive information with the utmost discretion. Your interactions should always be supportive, helping patients navigate the appointment process with ease and confidence."}
+        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
         # Add custom prompt to the beginning of the conversation history
         conversation_with_prompt = [custom_prompt] + session['conversation']
       
