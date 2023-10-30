@@ -64,6 +64,7 @@ def audio_upload():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
 
+
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session:
@@ -71,13 +72,15 @@ def setup_conversation():
         session['returning_user'] = False
         session['ended_conversation'] = False
         session['display_welcome'] = True  # Flag to display welcome message
+        session['awaiting_decision'] = False
     else:
         if session.get('ended_conversation', False):
             session['returning_user'] = False
+            session['awaiting_decision'] = False
         else:
             session['returning_user'] = True
+            session['awaiting_decision'] = True
 
-    print("Initial session:", session.get('conversation'))
 
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
