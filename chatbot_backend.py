@@ -64,10 +64,15 @@ def audio_upload():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
 
+def get_welcome_message():
+    return "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Please state your name and what I may assist you with. Are you here for an appointment or do you have other queries today?"
+
+
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session:
         print("New session being initialised")
+        welcome_message = get_welcome_message()
         session['conversation'] = [ 
                 {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
         ] 
@@ -153,11 +158,9 @@ def ask():
     
      # Check for "start" query to send a welcome message
     if query.lower() == "openmessage":
-        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Please state your name and what I may with. Are you here for an appointment or do you have other queries today?"
-
+        welcome_message = get_welcome_message()
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         return jsonify({"answer": welcome_message})
-
   
     # Check for exit words and break the session if found
     if any(word.lower() in query.lower() for word in exit_words):
