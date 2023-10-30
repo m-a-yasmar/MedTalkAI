@@ -195,7 +195,9 @@
             });
             const data = await response.json();
             displayMessage(data.answer, 'bot-message');
-	    textToSpeech(data.answer);
+	    if (data.openmessage) {
+	    	textToSpeech(data.answer);
+	    }
             saveChatHistory();
             const chatBox = document.getElementById('chat-box');
             chatBox.scrollTop = chatBox.scrollHeight;
