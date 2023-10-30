@@ -116,6 +116,12 @@ def ask():
     system_message = {}
     threshold = 0.9
     query = request.json.get('query')  # Get the query from the request
+    if query.lower() == "openmessage" and not session.get('displayed_welcome', True):
+        welcome_message = get_welcome_message()
+        session['displayed_welcome'] = True  # Set the flag to True
+        session['conversation'].append({"role": "assistant", "content": welcome_message})  # Add to conversation
+        return jsonify({"answer": welcome_message, "openmessage": True})  # "openmessage": True to trigger speech on frontend
+    
     max_tokens = 50  # Set desired token/word limit
     tokens = query.split()
     
