@@ -70,6 +70,7 @@ def setup_conversation():
         session['conversation'] = []
         session['returning_user'] = False
         session['ended_conversation'] = False
+        session['display_welcome'] = True  # Flag to display welcome message
     else:
         if session.get('ended_conversation', False):
             session['returning_user'] = False
@@ -77,6 +78,7 @@ def setup_conversation():
             session['returning_user'] = True
 
     print("Initial session:", session.get('conversation'))
+
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
     if len(sentences) > 1:
@@ -121,10 +123,11 @@ def ask():
 
     query_vector = vectorizer.transform([query])
 
-    if session.get('returning_user', False) and not session.get('awaiting_decision', True):
-        return_message = "Welcome back! Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
-        session['awaiting_decision'] = True
-        return jsonify({"answer": return_message})
+    if session.get('display_welcome', False):
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+        session['display_welcome'] = False  # Reset the flag
+        return jsonify({"answer": welcome_message})
+
     elif session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
             # TODO: handle continuation logic
