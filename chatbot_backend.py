@@ -67,24 +67,14 @@ def audio_upload():
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session:
-        print("New session being initialised")
-        session['conversation'] = [
-            {"role": "system", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ]
-        session['returning_user'] = False  # Now the user is a returning user
-        session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
-      
+        session['conversation'] = []
+        session['returning_user'] = False
+        session['ended_conversation'] = False
     else:
-        print("Existing session found")
-        if not session.get('returning_user', False):
-            
-            session['returning_user'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ] # This is a new session, so the user is not returning
-        
-            session['awaiting_decision'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
-        ] 
+        if session.get('ended_conversation', False):
+            session['returning_user'] = False
+        else:
+            session['returning_user'] = True
 
     print("Initial session:", session.get('conversation'))
 def trim_to_last_complete_sentence(text):
@@ -131,37 +121,38 @@ def ask():
         del session['transcribed_text']  # Remove the transcribed text from the session
     
     query_vector = vectorizer.transform([query])  # Transform the query to a TF-IDF vector
+    
   
-    if session.get('returning_user', False) and session.get('awaiting_decision', True):
+    if session.get('returning_user', False) and not session.get('awaiting_decision', True):
+        return_message = "Welcome back! Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
+        session['awaiting_decision'] = True
+        return jsonify({"answer": return_message})
+
+    elif session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
-            session['awaiting_decision'] = False
-            # Continue with the previous conversation
-            # ...
-            return_message = "Great, let's continue from where we left off."
+    #... handle continuation logic
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
             # Reset the conversation
             session['conversation'] = []
-            # ...
             return_message = "Alright, let's start a new conversation."
+            session['conversation'].append({"role": "assistant", "content": return_message})
+            return jsonify({"answer": return_message})
         else:
             return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
-        
-        session['conversation'].append({"role": "assistant", "content": return_message})
-        return jsonify({"answer": return_message})
+            return jsonify({"answer": return_message})
     
      # Check for "start" query to send a welcome message
     if query.lower() == "openmessage":
-        welcome_message = "Hello and a warm welcome! 🌟 I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
 
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         return jsonify({"answer": welcome_message})
-        
-    # Check for exit words and break the session if found
+           
     if any(word.lower() in query.lower() for word in exit_words):
+        session['ended_conversation'] = True
         session.clear()  # Clear the session
         return jsonify({"answer": "Thank you for your visit. Have a wonderful day. Goodbye!"})  # Send a goodbye message
-
     session['conversation'].append({"role": "user", "content": query})
     
     print("After appending user query:", session['conversation'])
