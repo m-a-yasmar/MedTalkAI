@@ -24,7 +24,7 @@ from flask_cors import CORS # for CORS
 CORS(chatbot)
 
 chatbot.secret_key = 'actual_voice_secret_med'  # Replace with your secret key
-openai.api_key = os.environ.get('OPENAI_API_KEY')
+openai.api_key = os.environ.get('MEDTALK_API_KEY')
 
 # Predefined answers
 predefined_answers = {
@@ -190,7 +190,7 @@ def ask():
         # If no predefined answer is found, call OpenAI API
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
+            "Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}",
             "Content-Type": "application/json"
         }
         custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you will kindly ask the patient if they would like to discuss their concerns in more detail. This information will be used to ensure that their visit is efficient and that the doctor or dentist is well-prepared to address their needs. You always communicate with a reassuring tone, ensuring confidentiality and handling sensitive information with the utmost discretion. Your interactions should always be supportive, helping patients navigate the appointment process with ease and confidence."}
