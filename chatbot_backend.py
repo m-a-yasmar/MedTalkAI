@@ -75,20 +75,33 @@ def setup_conversation():
         session['returning_user'] = False  # Now the user is a returning user
         session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
         session['displayed_welcome'] = False
-      
     else:
         print("Existing session found")
         if not session.get('returning_user', False):
-            
-            session['returning_user'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
-        ] # This is a new session, so the user is not returning
-        
-            session['awaiting_decision'] = [ 
-                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
-        ] 
+            session['returning_user'] = True
+            session['awaiting_decision'] = True  
+        print("Initial session:", session.get('conversation'))
 
-    print("Initial session:", session.get('conversation'))
+@chatbot.before_request
+def setup_conversation():
+    if 'conversation' not in session:
+        print("New session being initialised")
+        session['conversation'] = [
+            {
+                "role": "assistant",
+                "content": "... your existing content ..."
+            }
+        ]
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
+        session['displayed_welcome'] = False
+    else:
+        print("Existing session found")
+        if not session.get('returning_user', False):
+            session['returning_user'] = True
+            session['awaiting_decision'] = True
+
+
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
     if len(sentences) > 1:
