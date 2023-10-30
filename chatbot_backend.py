@@ -123,18 +123,17 @@ def ask():
 
     query_vector = vectorizer.transform([query])
 
-    if session.get('display_welcome', False):
-        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
-        session['display_welcome'] = False  # Reset the flag
-        return jsonify({"answer": welcome_message})
+  
 
     ######
-
-
-    elif session.get('returning_user', False) and session.get('awaiting_decision', True):
+    if session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
-            return_message = "Continuing from where you left off."
-            # Add additional logic here if needed
+            # If the user wants to continue, just return the latest assistant's message
+            last_assistant_message = next((message['content'] for message in reversed(session['conversation']) if message['role'] == 'assistant'), None)
+            if last_assistant_message:
+                return jsonify({"answer": last_assistant_message})
+            else:
+                return jsonify({"answer": "How can I assist you further?"})
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
             # Reset the conversation
