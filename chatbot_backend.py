@@ -118,11 +118,11 @@ def ask():
     system_message = {}
     threshold = 0.9
     query = request.json.get('query')  # Get the query from the request
-    max_tokens = 20  # Set desired token/word limit
+    max_tokens = 50  # Set desired token/word limit
     tokens = query.split()
     
     if len(tokens) > max_tokens:
-        answer = "Your query is too long. Please limit it to 20 words or less."
+        answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
 
     # Check if this is a new session and if the welcome message has been shown
