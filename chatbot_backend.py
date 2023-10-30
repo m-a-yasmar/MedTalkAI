@@ -152,10 +152,10 @@ def ask():
     
      # Check for "start" query to send a welcome message
     if query.lower() == "openmessage":
-        welcome_message = "Hello and a warm welcome! 🌟 I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
 
         session['conversation'].append({"role": "assistant", "content": welcome_message})
-        return jsonify({"answer": welcome_message})
+        return jsonify({"answer": welcome_message, "openmessage": True})
         
     # Check for exit words and break the session if found
     if any(word.lower() in query.lower() for word in exit_words):
