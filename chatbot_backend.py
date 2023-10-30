@@ -76,10 +76,9 @@ def setup_conversation():
         session['conversation'] = [ 
                 {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
         ] 
-
+        session['displayed_welcome'] = False
         session['returning_user'] = False  # Now the user is a returning user
         session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
-        session['displayed_welcome'] = False
     else:
         print("Existing session found")
         if not session.get('returning_user', False):
@@ -150,11 +149,13 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": return_message})
         return jsonify({"answer": return_message})
     
-     # Check for "start" query to send a welcome message
-    if query.lower() == "openmessage":
+   
+
+    if not session.get('displayed_welcome', True):
         welcome_message = get_welcome_message()
-        session['conversation'].append({"role": "assistant", "content": welcome_message})
-        return jsonify({"answer": welcome_message})
+        session['displayed_welcome'] = True  # Set the flag to True
+        session['conversation'].append({"role": "assistant", "content": welcome_message})  # Add to conversation
+        return jsonify({"answer": welcome_message, "openmessage": True})  # "openmessage": True to trigger speech on frontend
   
     # Check for exit words and break the session if found
     if any(word.lower() in query.lower() for word in exit_words):
