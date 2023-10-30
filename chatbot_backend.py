@@ -193,12 +193,10 @@ def ask():
         print("Last assistant message:", last_assistant_message)
         
         if last_assistant_message:
-            system_message = {
-                "role": "assistant",
-                "content": f"The user's query seems incomplete. Ask the user an open ended question. Refer back to your last message: '{last_assistant_message}' to better interpret what they might be asking."
-            }
-            if system_message:
-                session['conversation'].append(system_message)
+            system_message_content = f"The user's query seems incomplete. Ask the user an open-ended question. Refer back to your last message: '{last_assistant_message}' to better interpret what they might be asking."
+            session['conversation'].append({"role": "assistant", "content": system_message_content})
+            return jsonify({"answer": system_message_content})
+
     predefined_vectors = vectorizer.transform(predefined_answers.keys())
     similarity_scores = cosine_similarity(query_vector, predefined_vectors).flatten()
     max_index = similarity_scores.argmax()
