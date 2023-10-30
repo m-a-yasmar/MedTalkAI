@@ -23,8 +23,8 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret'  # Replace with your secret key
-openai.api_key = os.environ.get('FARM_AI_API')
+chatbot.secret_key = 'actual_voice_secret_med'  # Replace with your secret key
+openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 # Predefined answers
 predefined_answers = {
@@ -43,9 +43,9 @@ vectorizer.fit(predefined_answers.keys())
 def home():
     return render_template('chatbot2.html')
 
-@chatbot.route('/image/<path:filename>')
+@chatbot.route('/images/<path:filename>')
 def serve_image(filename):
-    return send_from_directory('image', filename)
+    return send_from_directory('images', filename)
 @chatbot.route('/audio_upload', methods=['POST'])
 def audio_upload():
     audio_data = request.files['audio'].read()
@@ -69,7 +69,7 @@ def setup_conversation():
     if 'conversation' not in session:
         print("New session being initialised")
         session['conversation'] = [
-            {"role": "system", "content": "You are a friendly, empathetic, and helpful Jamaican assistant who understands the local dialect. Your role is to assist the user with accurate and informative responses. Limit your responses to agriculture."}
+            {"role": "system", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
         ]
         session['returning_user'] = False  # Now the user is a returning user
         session['awaiting_decision'] = False  # The user needs to decide whether to continue or start anew
@@ -79,11 +79,12 @@ def setup_conversation():
         if not session.get('returning_user', False):
             
             session['returning_user'] = [ 
-                {"role": "assistant", "content": "You are a friendly, empathetic, and helpful Jamaican assistant who understands the local dialect. Your role is to assist the user with accurate and informative responses. Limit your responses to agriculture."}
+                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently.
+"}
         ] # This is a new session, so the user is not returning
         
             session['awaiting_decision'] = [ 
-                {"role": "assistant", "content": "You are a friendly, empathetic, and helpful Jamaican assistant who understands the local dialect. Your role is to assist the user with accurate and informative responses. Limit your responses to agriculture."}
+                {"role": "assistant", "content": "You are a friendly professional medical receptionist. Your role is to collect patient information, address their queries with empathy, and assist them in scheduling appointments with the appropriate medical professionals. You maintain a respectful and reassuring tone at all times, providing clear and precise information. When interacting with patients, you ensure confidentiality and handle sensitive information with discretion. Your responses should reflect a supportive attitude, guiding patients through the process of making an appointment smoothly and efficiently."}
         ] 
 
     print("Initial session:", session.get('conversation'))
@@ -152,7 +153,8 @@ def ask():
     
      # Check for "start" query to send a welcome message
     #if query.lower() == "openmessage":
-        #welcome_message = "Hello and welcome! 🌟 I'm Barry, your go-to guy for solid advice. What can I help you with today. 🌟."
+        #welcome_message = "Hello and a warm welcome! 🌟 I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+
         #session['conversation'].append({"role": "assistant", "content": welcome_message})
         #return jsonify({"answer": welcome_message})
         
@@ -188,10 +190,10 @@ def ask():
         # If no predefined answer is found, call OpenAI API
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {os.environ.get('FARM_AI_API')}",
+            "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
             "Content-Type": "application/json"
         }
-        custom_prompt = {"role": "system", "content": "You are an agriculture expert specialized in providing advice to farmers in Jamaica. You have extensive knowledge of local crops, soil conditions, climate, and agricultural practices. Your goal is to offer precise, actionable advice to help Jamaican farmers succeed.Constraints: Please ensure your advice is Relevant to Jamaican agriculture, Backed by scientific knowledge or best practices, Practical and actionable, Limited to the field of agriculture. You can understand and interpret Jamaican Patios."}
+        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you will kindly ask the patient if they would like to discuss their concerns in more detail. This information will be used to ensure that their visit is efficient and that the doctor or dentist is well-prepared to address their needs. You always communicate with a reassuring tone, ensuring confidentiality and handling sensitive information with the utmost discretion. Your interactions should always be supportive, helping patients navigate the appointment process with ease and confidence."}
         # Add custom prompt to the beginning of the conversation history
         conversation_with_prompt = [custom_prompt] + session['conversation']
       
