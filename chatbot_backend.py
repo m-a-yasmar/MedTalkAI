@@ -128,19 +128,21 @@ def ask():
         session['awaiting_decision'] = True
         return jsonify({"answer": return_message})
 
+
+
     elif session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
-    #... handle continuation logic
+            return_message = "Continuing from where you left off."
+            # Add additional logic here if needed
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
             # Reset the conversation
             session['conversation'] = []
             return_message = "Alright, let's start a new conversation."
-            session['conversation'].append({"role": "assistant", "content": return_message})
-            return jsonify({"answer": return_message})
         else:
             return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
-            return jsonify({"answer": return_message})
+        session['conversation'].append({"role": "assistant", "content": return_message})
+        return jsonify({"answer": return_message})
     
      # Check for "start" query to send a welcome message
     if query.lower() == "openmessage":
