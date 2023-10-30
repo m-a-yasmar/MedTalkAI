@@ -82,26 +82,6 @@ def setup_conversation():
             session['awaiting_decision'] = True  
         print("Initial session:", session.get('conversation'))
 
-@chatbot.before_request
-def setup_conversation():
-    if 'conversation' not in session:
-        print("New session being initialised")
-        session['conversation'] = [
-            {
-                "role": "assistant",
-                "content": "... your existing content ..."
-            }
-        ]
-        session['returning_user'] = False
-        session['awaiting_decision'] = False
-        session['displayed_welcome'] = False
-    else:
-        print("Existing session found")
-        if not session.get('returning_user', False):
-            session['returning_user'] = True
-            session['awaiting_decision'] = True
-
-
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
     if len(sentences) > 1:
