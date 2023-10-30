@@ -124,12 +124,6 @@ def ask():
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
 
-    # Check if this is a new session and if the welcome message has been shown
-    if not session.get('displayed_welcome', True):
-        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Please state your name and what I may with. Are you here for an appointment or do you have other queries today?"
-        session['displayed_welcome'] = True
-        return jsonify({"answer": welcome_message})
-
     # Check if there's transcribed text in the session
     transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
