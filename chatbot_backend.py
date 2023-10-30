@@ -126,6 +126,13 @@ def ask():
   
 
     ######
+    # Check for "start" query to send a welcome message first
+    if query.lower() == "openmessage":
+        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
+        session['conversation'].append({"role": "assistant", "content": welcome_message})
+        return jsonify({"answer": welcome_message})
+
+    # Next, handle the returning user logic
     if session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
             # If the user wants to continue, just return the latest assistant's message
@@ -143,13 +150,7 @@ def ask():
             return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
         session['conversation'].append({"role": "assistant", "content": return_message})
         return jsonify({"answer": return_message})
-    
-     # Check for "start" query to send a welcome message
-    if query.lower() == "openmessage":
-        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. How may I help you with your appointment or queries today?"
-
-        session['conversation'].append({"role": "assistant", "content": welcome_message})
-        return jsonify({"answer": welcome_message})
+ 
            
     if any(word.lower() in query.lower() for word in exit_words):
         session['ended_conversation'] = True
