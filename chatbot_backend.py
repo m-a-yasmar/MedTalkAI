@@ -112,21 +112,32 @@ def ask():
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 20 words or less."
         return jsonify({"answer": answer})
-    
 
     # Check if there's transcribed text in the session
     transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
-        query = transcribed_text  # Use the transcribed text as the query
-        del session['transcribed_text']  # Remove the transcribed text from the session
-    
-    query_vector = vectorizer.transform([query])  # Transform the query to a TF-IDF vector
-    
-  
+        query = transcribed_text
+        del session['transcribed_text']
+
+    query_vector = vectorizer.transform([query])
+
     if session.get('returning_user', False) and not session.get('awaiting_decision', True):
         return_message = "Welcome back! Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
         session['awaiting_decision'] = True
         return jsonify({"answer": return_message})
+    elif session.get('returning_user', False) and session.get('awaiting_decision', True):
+        if query.lower() == 'continue':
+            # TODO: handle continuation logic
+            pass
+        elif query.lower() == 'new':
+            session['awaiting_decision'] = False
+            session['conversation'] = []
+            return_message = "Alright, let's start a new conversation."
+            session['conversation'].append({"role": "assistant", "content": return_message})
+            return jsonify({"answer": return_message})
+        else:
+            return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
+            return jsonify({"answer": return_message}
 
 
 
