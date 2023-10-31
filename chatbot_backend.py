@@ -118,6 +118,8 @@ def ask():
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.permanent = False  # Make the session non-permanent
         session.clear()  # Clear the session
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
         return jsonify({"answer": goodbye_message})  # Send a good
         
     if len(tokens) > max_tokens:
