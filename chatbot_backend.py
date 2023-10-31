@@ -107,36 +107,33 @@ def custom_limit_request_error():
 
 @chatbot.route('/ask', methods=['POST'])
 def ask():
-    system_message = {}
     threshold = 0.9
-    query = request.json.get('query')  # Get the query from the request
-    max_tokens = 50  # Set desired token/word limit
+    query = request.json.get('query')
+    max_tokens = 50
     tokens = query.split()
+    
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
-    
-    # Check if there's transcribed text in the session
+
     transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
-        query = transcribed_text  # Use the transcribed text as the query
-        del session['transcribed_text']  # Remove the transcribed text from the session
-    
-    query_vector = vectorizer.transform([query])  # Transform the query to a TF-IDF vector
-  
+        query = transcribed_text
+        del session['transcribed_text']
+
+    query_vector = vectorizer.transform([query])
+
     if session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
             session['awaiting_decision'] = False
-            session['conversation_status'] = 'active'  # Set the conversation to active
-    
+            session['conversation_status'] = 'active'
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
-            session['conversation_status'] = 'new'  # Start a new conversation
+            session['conversation_status'] = 'new'
             session['conversation'] = []
             return_message = "Alright, let's start a new conversation."
         else:
-            #return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
-            return_message = "Lets Proceed. Could you state what I can help you with"
+            return_message = "Let's proceed. Could you state what I can help you with?"
             session['awaiting_decision'] = False
             session['conversation_status'] = 'active'
         
@@ -150,78 +147,35 @@ def ask():
         return jsonify({"answer": welcome_message})
 
     elif session.get('conversation_status', 'active') == 'active':
-        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
-        # Add custom prompt to the beginning of the conversation history
-        conversation_with_prompt = [custom_prompt] + session['conversation_status']
-        #return_message = "Alright, let's continue."       
-        session['conversation'].append({"role": "assistant", "content": conversation_with_prompt})
-        return jsonify({"answer":  conversation_with_prompt})
-        
-    # Check for exit words and break the session if found
-    if any(word.lower() in query.lower() for word in exit_words):
-        session.clear()  # Clear the session
-        return jsonify({"answer": "Thank you for your visit. Have a wonderful day. Goodbye!"})  # Send a goodbye message
-
-    session['conversation'].append({"role": "user", "content": query})
-    
-    print("After appending user query:", session['conversation'])
-    
-    if len(query.split()) < 2:
-        last_assistant_message = next((message['content'] for message in reversed(session['conversation']) if message['role'] == 'assistant'), None)
-        print("Last assistant message:", last_assistant_message)
-        
-        if last_assistant_message:
-            system_message = {
-                "role": "assistant",
-                "content": f"The user's query seems incomplete. Ask the user an open ended question. Refer back to your last message: '{last_assistant_message}' to better interpret what they might be asking."
-            }
-            if system_message:
-                session['conversation'].append(system_message)
-    predefined_vectors = vectorizer.transform(predefined_answers.keys())
-    similarity_scores = cosine_similarity(query_vector, predefined_vectors).flatten()
-    max_index = similarity_scores.argmax()
-    max_score = similarity_scores[max_index]
-
-    if max_score >= threshold:
-        most_similar_question = list(predefined_answers.keys())[max_index]
-        answer = predefined_answers[most_similar_question]
-    else:
-        # If no predefined answer is found, call OpenAI API
-        api_endpoint = "https://api.openai.com/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}",
-            "Content-Type": "application/json"
+        custom_prompt = {
+            "role": "system",
+            "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."
         }
-        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
-        # Add custom prompt to the beginning of the conversation history
         conversation_with_prompt = [custom_prompt] + session['conversation']
-      
-        # Use the conversation history for context-aware API call
+
+        api_endpoint = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         payload = {
             "model": "gpt-4",
             "messages": conversation_with_prompt,
-            "frequency_penalty": 1.0,  
+            "frequency_penalty": 1.0,
             "presence_penalty": -0.5
         }
-        # frequency -2 to 2. higher increase repetition of answer  presence -2 to 2. higher likely to switch topic
-        response = requests.post(api_endpoint, headers=headers, json=payload, timeout=60)  # 15-second timeout
-
+        response = requests.post(api_endpoint, headers=headers, json=payload, timeout=60)
 
         if response.status_code == 200:
             answer = response.json()['choices'][0]['message']['content'].strip()
             answer = trim_to_last_complete_sentence(answer)
-            # Remove any forbidden phrases
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
         else:
-            
             answer = "I'm sorry, I couldn't understand the question."
-    session['conversation'].append({"role": "assistant", "content": answer})
-    session.modified = True
-    print("After appending assistant answer:", session['conversation'])
-    return jsonify({"answer": answer})
-    
+
+        session['conversation'].append({"role": "assistant", "content": answer})
+        session.modified = True
+        return jsonify({"answer": answer})
+
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
