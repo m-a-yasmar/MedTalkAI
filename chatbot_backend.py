@@ -150,9 +150,12 @@ def ask():
         return jsonify({"answer": welcome_message})
 
     elif session.get('conversation_status', 'active') == 'active':
-        return_message = "Alright, let's continue."       
-        session['conversation'].append({"role": "assistant", "content": "You are a medical assistant. you ask medical questions."})
-        return jsonify({"answer": return_message})
+        custom_prompt = {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."}
+        # Add custom prompt to the beginning of the conversation history
+        conversation_with_prompt = [custom_prompt] + session['conversation_status']
+        #return_message = "Alright, let's continue."       
+        session['conversation'].append({"role": "assistant", "content": conversation_with_prompt})
+        return jsonify({"answer":  conversation_with_prompt})
         
     # Check for exit words and break the session if found
     if any(word.lower() in query.lower() for word in exit_words):
