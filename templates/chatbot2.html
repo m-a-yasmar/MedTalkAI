@@ -148,6 +148,11 @@
             });
             const data = await response.json();
             displayMessage(data.answer, 'bot-message');  // Displaying the message that audio is successfully uploaded and transcribed
+		
+	    if (data.answer === "Thank you for your visit. Have a wonderful day. Goodbye!") {
+                localStorage.removeItem('chatHistory');
+		    
+	    }
         
             // New code for sending transcribed text as a query
             if (data.status === "success") {
@@ -203,12 +208,13 @@
 	    document.getElementById('send-button').disabled = false;
 	}
 
-        function displayMessage(message, className) {
+	function displayMessage(message, className) {
             const chatBox = document.getElementById('chat-box');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
             messageDiv.innerText = message;
             chatBox.appendChild(messageDiv);
+		
         }
     </script>
 </body>
