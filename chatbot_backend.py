@@ -113,6 +113,14 @@ def ask():
     exit_words = ["exit", "quit", "bye", "goodbye"]
     session['conversation'].append({"role": "user", "content": query})
 
+    if query == 'start new session':
+        session['conversation'] = []
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
+        session['cleared'] = False
+        return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
+
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.clear()  # Clear the session
