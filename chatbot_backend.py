@@ -116,6 +116,8 @@ def ask():
     
     if any(word.lower() in query.lower() for word in exit_words):
         session.clear()  # Clear the session
+        session.permanent = True  # Make the session permanent so it will be saved
+        chatbot.permanent_session_lifetime = timedelta(seconds=1)
         return jsonify({"answer": "Thank you for your visit. Have a wonderful day. Goodbye!"})  # Send a goodbye message
     
     if len(tokens) > max_tokens:
