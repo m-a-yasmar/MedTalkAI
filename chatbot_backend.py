@@ -121,7 +121,14 @@ def ask():
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         return jsonify({"answer": goodbye_message})
-        
+
+    if session.get('cleared', False):
+        session['conversation'] = []
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
+        session['cleared'] = False
+            
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
