@@ -181,29 +181,28 @@
             document.getElementById('query').value = '';
         }
 
-        async function sendQueryToServer(query) {
-            document.getElementById('send-button').disabled = false;
-            if (query.toLowerCase() !== 'openmessage') {
-                displayMessage(query, 'user-message');
-            }
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+
+	async function sendQueryToServer(query) {
+    	    document.getElementById('send-button').disabled = false;
+    	    if (query.toLowerCase() !== 'openmessage') {
+        	displayMessage(query, 'user-message');
+    	    }
+    	    const response = await fetch('/ask', {
+         	method: 'POST',
+        	headers: {
+            	    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ query: query }),
-            });
-            const data = await response.json();
-            displayMessage(data.answer, 'bot-message');
-	    if (data.openmessage) {
-	    	textToSpeech(data.answer);
-	    }
-            saveChatHistory();
-            const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
-            document.getElementById('send-button').disabled = false;
-        }
-        
+             });
+	    const data = await response.json();
+	    displayMessage(data.answer, 'bot-message');
+	    textToSpeech(data.answer);  // Always invoke textToSpeech here
+	    saveChatHistory();
+	    const chatBox = document.getElementById('chat-box');
+	    chatBox.scrollTop = chatBox.scrollHeight;
+	    document.getElementById('send-button').disabled = false;
+	}
+
         function displayMessage(message, className) {
             const chatBox = document.getElementById('chat-box');
             const messageDiv = document.createElement('div');
