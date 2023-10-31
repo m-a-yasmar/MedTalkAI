@@ -117,6 +117,9 @@ def ask():
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.clear()  # Clear the session
         session['cleared'] = True  # Indicate that the session has been cleared
+        session['returning_user'] = False  # Resetting the flags immediately
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
         return jsonify({"answer": goodbye_message})
         
     if len(tokens) > max_tokens:
