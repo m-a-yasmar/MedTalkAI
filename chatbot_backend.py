@@ -113,13 +113,13 @@ def ask():
     tokens = query.split()
     exit_words = ["exit", "quit", "bye", "goodbye"]
     session['conversation'].append({"role": "user", "content": query})
-    
+
     if any(word.lower() in query.lower() for word in exit_words):
+        goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
+        session.permanent = False  # Make the session non-permanent
         session.clear()  # Clear the session
-        session.permanent = True  # Make the session permanent so it will be saved
-        chatbot.permanent_session_lifetime = timedelta(seconds=5)
-        return jsonify({"answer": "Thank you for your visit. Have a wonderful day. Goodbye!"})  # Send a goodbye message
-    
+        return jsonify({"answer": goodbye_message})  # Send a good
+        
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
