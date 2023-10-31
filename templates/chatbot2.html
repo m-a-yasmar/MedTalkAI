@@ -149,8 +149,10 @@
             const data = await response.json();
             displayMessage(data.answer, 'bot-message');  // Displaying the message that audio is successfully uploaded and transcribed
 		
-	    if (data.answer === "Thank you for your visit. Have a wonderful day. Goodbye!") {
-                localStorage.removeItem('chatHistory');
+	    
+	    if (data.status === "end_session") {
+        	localStorage.removeItem('chatHistory');  // Clear chat history
+        	initChat(); 
 		    
 	    }
         
