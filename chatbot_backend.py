@@ -63,22 +63,23 @@ def audio_upload():
             return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "Audio uploaded and transcribed successfully. Proceeding to answer."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
-
 @chatbot.before_request
 def setup_conversation():
-    if 'conversation' not in session:
+    if 'conversation' not in session or session.get('cleared', False):
         print("New session being initialised")
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
+        session['cleared'] = False
     else:
         print("Existing session found")
         if not session.get('returning_user', False):
             session['returning_user'] = True
             session['awaiting_decision'] = True
-
     print("Initial session:", session.get('conversation'))
+
+
     
 def trim_to_last_complete_sentence(text):
     sentences = text.split(". ")
@@ -116,11 +117,10 @@ def ask():
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
-        session.permanent = False  # Make the session non-permanent
         session.clear()  # Clear the session
-        session['returning_user'] = False
-        session['awaiting_decision'] = False
-        return jsonify({"answer": goodbye_message})  # Send a good
+        session['cleared'] = True  # Indicate that the session has been cleared
+        return jsonify({"answer": goodbye_message})  # Send a goodbye messag
+
         
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
