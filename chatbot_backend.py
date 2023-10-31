@@ -137,6 +137,8 @@ def ask():
         else:
             #return_message = "Would you like to continue from where you left off or start a new conversation? Type 'continue' to proceed or 'new' to start afresh."
             return_message = "Lets Proceed. Could you state what I can help you with"
+            session['awaiting_decision'] = False
+            session['conversation_status'] = 'active'
         
         session['conversation'].append({"role": "assistant", "content": return_message})
         return jsonify({"answer": return_message})
