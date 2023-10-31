@@ -151,7 +151,7 @@ def ask():
 
     elif session.get('conversation_status', 'active') == 'active':
         return_message = "Alright, let's continue."       
-        session['conversation'].append({"role": "assistant", "content": return_message})
+        session['conversation'].append({"role": "assistant", "content": "You are a medical assistant. you ask medical questions."})
         return jsonify({"answer": return_message})
         
     # Check for exit words and break the session if found
