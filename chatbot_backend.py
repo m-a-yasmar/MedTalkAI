@@ -111,6 +111,12 @@ def ask():
     query = request.json.get('query')
     max_tokens = 50
     tokens = query.split()
+    exit_words = ["exit", "quit", "bye", "goodbye"]
+    session['conversation'].append({"role": "user", "content": query})
+    
+    if any(word.lower() in query.lower() for word in exit_words):
+        session.clear()  # Clear the session
+        return jsonify({"answer": "Thank you for your visit. Have a wonderful day. Goodbye!"})  # Send a goodbye message
     
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
@@ -122,7 +128,7 @@ def ask():
         del session['transcribed_text']
 
     query_vector = vectorizer.transform([query])
-
+    
     if session.get('returning_user', False) and session.get('awaiting_decision', True):
         if query.lower() == 'continue':
             session['awaiting_decision'] = False
@@ -145,6 +151,7 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         return jsonify({"answer": welcome_message})
+    
 
     elif session.get('conversation_status', 'active') == 'active':
         custom_prompt = {
