@@ -141,7 +141,7 @@ def ask():
             session['conversation'] = []
             return_message = "Alright, let's start a new conversation."
         else:
-            return_message = "Let's proceed. Could you state what I can help you with?"
+            return_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Are you here to make an appointment or Something else? If so, please state what and I will try my best to assist you."
             session['awaiting_decision'] = False
             session['conversation_status'] = 'active'
         
