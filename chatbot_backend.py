@@ -120,7 +120,7 @@ def ask():
         session['returning_user'] = False  # Resetting the flags immediately
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
-        return jsonify({"answer": goodbye_message})
+        return jsonify({"answer": goodbye_message, "status": "end_session"})
 
     if session.get('cleared', False):
         session['conversation'] = []
