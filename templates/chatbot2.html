@@ -152,6 +152,7 @@
 	    
 	    if (data.status === "end_session") {
         	localStorage.removeItem('chatHistory');  // Clear chat history
+		await sendQueryToServer('start new session'); 
         	initChat(); 
 		    
 	    }
