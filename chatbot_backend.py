@@ -118,9 +118,10 @@ def ask():
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.clear()  # Clear the session
-        session['cleared'] = True  # Indicate that the session has been cleared
-        return jsonify({"answer": goodbye_message})  # Send a goodbye messag
-
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
+        return jsonify({"answer": goodbye_message})
         
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
