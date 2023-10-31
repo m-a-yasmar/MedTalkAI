@@ -154,7 +154,7 @@ def ask():
         welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you."
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
-        return jsonify({"answer": welcome_message})
+        #return jsonify({"answer": welcome_message})
     
 
     elif session.get('conversation_status', 'active') == 'active':
