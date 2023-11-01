@@ -125,29 +125,19 @@
             .catch(err => console.error('Error capturing audio.', err));
         }
         
-		// For desktop browsers
-	document.getElementById('record-button').addEventListener('mousedown', startRecording);
-	document.getElementById('record-button').addEventListener('mouseup', stopRecording);
-	
-	// For mobile browsers
-	document.getElementById('record-button').addEventListener('touchstart', startRecording);
-	document.getElementById('record-button').addEventListener('touchend', stopRecording);
-	
-	function startRecording() {
-	    // Start recording
-	    mediaRecorder.start();
-	    document.getElementById('record-button').textContent = 'Recording...';
-	    document.getElementById('record-button').style.backgroundColor = 'green';
-	    isRecording = true;
-	}
-	
-	function stopRecording() {
-	    // Stop recording
-	    mediaRecorder.stop();
-	    document.getElementById('record-button').textContent = 'Start Recording';
-	    document.getElementById('record-button').style.backgroundColor = 'red';
-	    isRecording = false;
-	}
+        document.getElementById('record-button').addEventListener('click', () => {
+            if (isRecording) {
+                mediaRecorder.stop();
+                document.getElementById('record-button').textContent = 'Start Recording';
+                document.getElementById('record-button').style.backgroundColor = 'red';
+                isRecording = false;
+            } else {
+                mediaRecorder.start();
+                document.getElementById('record-button').textContent = 'Stop Recording';
+                document.getElementById('record-button').style.backgroundColor = 'green';
+                isRecording = true;
+            }
+        });
 
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
