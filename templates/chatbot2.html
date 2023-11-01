@@ -133,20 +133,21 @@
             })
             .catch(err => console.error('Error capturing audio.', err));
         }
-        
-        document.getElementById('record-button').addEventListener('click', () => {
-            if (isRecording) {
-                mediaRecorder.stop();
-                document.getElementById('record-button').textContent = 'Start Recording';
-                document.getElementById('record-button').style.backgroundColor = 'red';
-                isRecording = false;
-            } else {
-                mediaRecorder.start();
-                document.getElementById('record-button').textContent = 'Stop Recording';
-                document.getElementById('record-button').style.backgroundColor = 'green';
-                isRecording = true;
-            }
-        });
+
+	document.getElementById('record-button').addEventListener('mousedown', function() {
+    	    // Start recording
+    	    mediaRecorder.start();
+    	    document.getElementById('record-button').textContent = 'Recording...';
+            document.getElementById('record-button').style.backgroundColor = 'green';
+         });
+
+        document.getElementById('record-button').addEventListener('mouseup', function() {
+            // Stop recording
+            mediaRecorder.stop();
+            document.getElementById('record-button').textContent = 'Start Recording';
+            document.getElementById('record-button').style.backgroundColor = 'red';
+         });
+
 
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
