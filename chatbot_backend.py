@@ -49,11 +49,9 @@ def serve_image(filename):
 @chatbot.route('/audio_upload', methods=['POST'])
 def audio_upload():
     audio_data = request.files['audio'].read()
-    mime_type = request.form['mimetype']
-    file_extension = mime_type.split('/')[-1]     
     
     # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_extension}") as temp_audio:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
         temp_audio.write(audio_data)
         temp_path = temp_audio.name
 
