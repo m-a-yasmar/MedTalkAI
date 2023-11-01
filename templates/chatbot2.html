@@ -141,8 +141,11 @@
 
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
-            const formData = new FormData();
+	    const mimeType = audioBlob.type;
+	    const formData = new FormData();
+		
             formData.append('audio', audioBlob, 'audio.wav');
+	    formData.append('mimetype', mimeType);
             const response = await fetch('/audio_upload', {
                 method: 'POST',
                 body: formData,
