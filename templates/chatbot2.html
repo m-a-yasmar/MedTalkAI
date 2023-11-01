@@ -74,18 +74,16 @@
             border: none;
             cursor: pointer;
         }
-      #record-button {
+        #record-button {
             width: 120px;
             background: red;
             color: var(--primary-text-color);
             border: none;
             cursor: pointer;
         }
-        
     </style>
 </head>
 <body style="background-image: url('/images/Medtalk.png');" onload="initChat().then(() => console.log('Chat initialized'));">
-
     <section id="chat-container">
         <header id="chat-header">MedTalkAI</header>
         <article id="chat-box"></article>
@@ -98,48 +96,42 @@
     </section>
 
     <script>
-        let isRecording = false;
-        let mediaRecorder;
-        let audioChunks = [];
-	
-	function textToSpeech(text) {
-            var msg = new SpeechSynthesisUtterance();
-            msg.text = text;
-            window.speechSynthesis.speak(msg);
+        var audioContext, microphone, scriptProcessor, audioChunks = [];
+
+        async function startWebAudioRecording() {
+            audioContext = new AudioContext();
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            scriptProcessor = audioContext.createScriptProcessor(1024, 1, 1);
+            microphone = audioContext.createMediaStreamSource(stream);
+
+            microphone.connect(scriptProcessor);
+            scriptProcessor.connect(audioContext.destination);
+
+            scriptProcessor.onaudioprocess = function(event) {
+                var inputBuffer = event.inputBuffer.getChannelData(0);
+                audioChunks.push(new Float32Array(inputBuffer));
+            };
         }
-        
-        // Initialize media recorder
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    await sendAudioToServer(audioBlob);
-                    audioChunks = [];
-                };
-            })
-            .catch(err => console.error('Error capturing audio.', err));
+
+        function stopWebAudioRecording() {
+            scriptProcessor.disconnect();
+            microphone.disconnect();
+            audioContext.close();
+            // Now you can send audioChunks to your server
         }
-        
-        document.getElementById('record-button').addEventListener('click', () => {
-            if (isRecording) {
-                mediaRecorder.stop();
+
+        document.getElementById('record-button').addEventListener('click', async () => {
+            if (audioContext && audioContext.state === 'running') {
+                stopWebAudioRecording();
                 document.getElementById('record-button').textContent = 'Start Recording';
                 document.getElementById('record-button').style.backgroundColor = 'red';
-                isRecording = false;
             } else {
-                mediaRecorder.start();
+                await startWebAudioRecording();
                 document.getElementById('record-button').textContent = 'Stop Recording';
                 document.getElementById('record-button').style.backgroundColor = 'green';
-                isRecording = true;
             }
         });
-
-        async function sendAudioToServer(audioBlob) {
+	async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
             const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.wav');
@@ -223,3 +215,5 @@
     </script>
 </body>
 </html>
+
+        
