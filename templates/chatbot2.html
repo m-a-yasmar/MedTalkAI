@@ -101,6 +101,7 @@
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
+	let mimeType = 'audio/wav'; 
 	
 	function textToSpeech(text) {
             var msg = new SpeechSynthesisUtterance();
@@ -112,7 +113,10 @@
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
+		if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+		}
+		mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
                 mediaRecorder.ondataavailable = event => {
                     audioChunks.push(event.data);
                 };
@@ -142,7 +146,9 @@
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.wav');
+	    formData.append('audio', audioBlob, `audio.${mimeType.split('/')[1]}`);
+            formData.append('mimetype', mimeType);  // Send MIME type to the server
+            
             const response = await fetch('/audio_upload', {
                 method: 'POST',
                 body: formData,
