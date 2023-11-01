@@ -229,6 +229,15 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
             messageDiv.innerText = message;
+
+	    if (className === 'bot-message') {
+        	const playButton = document.createElement('button');
+        	playButton.innerText = 'Play Message';
+        	playButton.onclick = function() {
+            	   textToSpeech(message);
+            };
+        	messageDiv.appendChild(playButton);
+         }
             chatBox.appendChild(messageDiv);
 		
         }
