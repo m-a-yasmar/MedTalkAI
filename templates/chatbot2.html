@@ -98,15 +98,6 @@
     </section>
 
     <script>
-	// Check if browser supports speech synthesis
-       if ('speechSynthesis' in window) {
-	// Speech Synthesis supported
-	  console.log("Your browser supports speech synthesis.");
-       } else {
-	// Speech Synthesis NOT supported
-	   console.log("Sorry, your browser does not support speech synthesis.");
-       }
-	    
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
@@ -133,29 +124,25 @@
             })
             .catch(err => console.error('Error capturing audio.', err));
         }
-
-	document.getElementById('record-button').addEventListener('mousedown', function() {
-    	    // Start recording
-    	    mediaRecorder.start();
-    	    document.getElementById('record-button').textContent = 'Recording...';
-            document.getElementById('record-button').style.backgroundColor = 'green';
-         });
-
-        document.getElementById('record-button').addEventListener('mouseup', function() {
-            // Stop recording
-            mediaRecorder.stop();
-            document.getElementById('record-button').textContent = 'Start Recording';
-            document.getElementById('record-button').style.backgroundColor = 'red';
-         });
-
+        
+        document.getElementById('record-button').addEventListener('click', () => {
+            if (isRecording) {
+                mediaRecorder.stop();
+                document.getElementById('record-button').textContent = 'Start Recording';
+                document.getElementById('record-button').style.backgroundColor = 'red';
+                isRecording = false;
+            } else {
+                mediaRecorder.start();
+                document.getElementById('record-button').textContent = 'Stop Recording';
+                document.getElementById('record-button').style.backgroundColor = 'green';
+                isRecording = true;
+            }
+        });
 
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
-	    const mimeType = audioBlob.type;
-	    const formData = new FormData();
-		
+            const formData = new FormData();
             formData.append('audio', audioBlob, 'audio.wav');
-	    formData.append('mimetype', mimeType);
             const response = await fetch('/audio_upload', {
                 method: 'POST',
                 body: formData,
@@ -230,15 +217,6 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
             messageDiv.innerText = message;
-
-	    if (className === 'bot-message') {
-        	const playButton = document.createElement('button');
-        	playButton.innerText = 'Play Message';
-        	playButton.onclick = function() {
-            	   textToSpeech(message);
-            };
-        	messageDiv.appendChild(playButton);
-         }
             chatBox.appendChild(messageDiv);
 		
         }
