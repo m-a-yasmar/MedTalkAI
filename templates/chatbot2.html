@@ -98,6 +98,15 @@
     </section>
 
     <script>
+	// Check if browser supports speech synthesis
+       if ('speechSynthesis' in window) {
+	// Speech Synthesis supported
+	  console.log("Your browser supports speech synthesis.");
+       } else {
+	// Speech Synthesis NOT supported
+	   console.log("Sorry, your browser does not support speech synthesis.");
+       }
+	    
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
