@@ -156,7 +156,9 @@ def ask():
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
             session['conversation_status'] = 'new'
-            session['conversation'] = []
+            session['conversation'] = [
+                {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
+            ]
             return_message = "Alright, let's start a new conversation."
         else:
             return_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you. Are you here to make an appointment or Something else? If so, please state what and I will try my best to assist you."
@@ -176,7 +178,7 @@ def ask():
     elif session.get('conversation_status', 'active') == 'active':
         custom_prompt = {
             "role": "system",
-            "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals. After scheduling an appointment, you should always invite the patient to share any further concerns they might have. Promptly offer them the opportunity to provide additional details about their condition, which will aid in a more effective consultation. In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion. Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."
+            "content": "Your responses should be supportive and guide the patient through the appointment process with ease and confidence. Always end each interaction with an engaging question to encourage a response from the user."
         }
         conversation_with_prompt = [custom_prompt] + session['conversation']
 
