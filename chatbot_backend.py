@@ -175,7 +175,7 @@ def ask():
     elif session.get('conversation_status', 'active') == 'active':
         custom_prompt = {
             "role": "system",
-            "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments, with suitable healthcare professionals. After each interaction, confirm the completion of the user's request by asking a question such as 'Is that correct?' or 'Is there anything else?'.In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion.")
+            "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments, with suitable healthcare professionals. After each interaction, confirm the completion of the user's request by asking a question such as 'Is that correct?' or 'Is there anything else?'.In every interaction, communicate with a reassuring tone, guarantee confidentiality, and handle sensitive information with the utmost discretion."
         }
         conversation_with_prompt = [custom_prompt] + session['conversation']
 
