@@ -74,17 +74,28 @@
             border: none;
             cursor: pointer;
         }
-      #record-button {
+        #record-button {
             width: 120px;
             background: red;
             color: var(--primary-text-color);
             border: none;
             cursor: pointer;
         }
-        
+        #start-chat-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: var(--button-bg);
+            color: var(--primary-text-color);
+            border: none;
+            cursor: pointer;
+            display: block;
+            width: 200px;
+            margin: 10px auto;
+            text-align: center;
+        }
     </style>
 </head>
-<body style="background-image: url('/images/Medtalk.png');" onload="initChat()">
+<body>
 
     <section id="chat-container">
         <header id="chat-header">MedTalkAI</header>
@@ -93,6 +104,7 @@
             <input type="text" id="query" placeholder="What can I do to help you and your farm...?" onkeydown="if (event.keyCode == 13) askQuestion()">
             <button id="send-button" type="button" onclick="askQuestion()">Ask</button>
             <button id="record-button" type="button">Start Recording</button>
+            <button id="start-chat-btn" type="button">Tap to Start Chat</button>
             <input type="file" id="audioFileInput" name="audio" accept="audio/wav">
         </form>
     </section>
@@ -101,13 +113,13 @@
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
-	
-	function textToSpeech(text) {
+
+        function textToSpeech(text) {
             var msg = new SpeechSynthesisUtterance();
             msg.text = text;
             window.speechSynthesis.speak(msg);
         }
-        
+
         // Initialize media recorder
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -124,7 +136,7 @@
             })
             .catch(err => console.error('Error capturing audio.', err));
         }
-        
+
         document.getElementById('record-button').addEventListener('click', () => {
             if (isRecording) {
                 mediaRecorder.stop();
@@ -148,24 +160,22 @@
                 body: formData,
             });
             const data = await response.json();
-            displayMessage(data.answer, 'bot-message');  // Displaying the message that audio is successfully uploaded and transcribed
-		
-	    
-	    if (data.status === "end_session") {
-        	localStorage.removeItem('chatHistory');  // Clear chat history
-		await sendQueryToServer('start new session'); 
-        	initChat(); 
-		    
-	    }
-        
+            displayMessage(data.answer, 'bot-message'); // Displaying the message that audio is successfully uploaded and transcribed
+            
+            if (data.status === "end_session") {
+                localStorage.removeItem('chatHistory'); // Clear chat history
+                await sendQueryToServer('start new session'); 
+                initChat(); 
+            }
+            
             // New code for sending transcribed text as a query
             if (data.status === "success") {
                 await sendQueryToServer(data.transcribed_text);
             }
         }
-        
+
         async function initChat() {
-            loadChatHistory();  // Load chat history here
+            loadChatHistory(); // Load chat history here
             const query = "openmessage";
             await sendQueryToServer(query);
         }
@@ -182,44 +192,51 @@
                 chatBox.innerHTML = savedChat;
             }
         }
-	
-	
+
         async function askQuestion() {
             const query = document.getElementById('query').value;
             await sendQueryToServer(query);
             document.getElementById('query').value = '';
         }
 
-
-	async function sendQueryToServer(query) {
-    	    document.getElementById('send-button').disabled = false;
-    	    if (query.toLowerCase() !== 'openmessage') {
-        	displayMessage(query, 'user-message');
-    	    }
-    	    const response = await fetch('/ask', {
-         	method: 'POST',
-        	headers: {
-            	    'Content-Type': 'application/json',
+        async function sendQueryToServer(query) {
+            document.getElementById('send-button').disabled = true;
+            if (query.toLowerCase() !== 'openmessage') {
+                displayMessage(query, 'user-message');
+            }
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ query: query }),
-             });
-	    const data = await response.json();
-	    displayMessage(data.answer, 'bot-message');
-	    textToSpeech(data.answer);  // Always invoke textToSpeech here
-	    saveChatHistory();
-	    const chatBox = document.getElementById('chat-box');
-	    chatBox.scrollTop = chatBox.scrollHeight;
-	    document.getElementById('send-button').disabled = false;
-	}
+            });
+            const data = await response.json();
+            displayMessage(data.answer, 'bot-message');
+            textToSpeech(data.answer); // Always invoke textToSpeech here
+            saveChatHistory();
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+            document.getElementById('send-button').disabled = false;
+        }
 
-	function displayMessage(message, className) {
+        function displayMessage(message, className) {
             const chatBox = document.getElementById('chat-box');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
             messageDiv.innerText = message;
             chatBox.appendChild(messageDiv);
-		
         }
+
+        // This event listener should be outside any other function
+        document.addEventListener('DOMContentLoaded', function() {
+            var startChatBtn = document.getElementById('start-chat-btn');
+            
+            startChatBtn.addEventListener('click', function() {
+                initChat().then(() => console.log('Chat initialized'));
+                startChatBtn.style.display = 'none';
+            });
+        });
     </script>
 </body>
 </html>
