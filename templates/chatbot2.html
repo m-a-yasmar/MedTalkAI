@@ -99,6 +99,9 @@
 
     <section id="chat-container">
         <header id="chat-header">MedTalkAI</header>
+        <div id="ios-disclaimer" class="disclaimer" style="display:none;">
+            Attention iOS users: The voice recording feature is not supported on iOS devices. Please use the text input for your queries.
+        </div>
         <article id="chat-box"></article>
         <form id="chat-input" enctype="multipart/form-data" onsubmit="return false;">
             <input type="text" id="query" placeholder="What can I do to help you and your farm...?" onkeydown="if (event.keyCode == 13) askQuestion()">
@@ -110,6 +113,15 @@
     </section>
 
     <script>
+        function checkForiOS() {
+            // Check if the user's device is iOS
+            var isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isiOS) {
+                // Show the iOS-specific disclaimer
+                document.getElementById('ios-disclaimer').style.display = 'block';
+            }
+        }
+        
         let isRecording = false;
         let mediaRecorder;
         let audioChunks = [];
@@ -237,6 +249,8 @@
                 startChatBtn.style.display = 'none';
             });
         });
+
+        checkForiOS();
     </script>
 </body>
 </html>
