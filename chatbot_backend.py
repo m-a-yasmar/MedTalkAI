@@ -80,12 +80,6 @@ def setup_conversation():
             session['awaiting_decision'] = True
     print("Initial session:", session.get('conversation'))
     
-def trim_to_last_complete_sentence(text):
-    sentences = text.split(". ")
-    if len(sentences) > 1:
-        return ". ".join(sentences[:-1]) + "."
-    else:
-        return text
 
 # List of exit words that should break the session
 exit_words = ["exit", "quit", "bye", "goodbye"]
@@ -193,8 +187,7 @@ def ask():
         response = requests.post(api_endpoint, headers=headers, json=payload, timeout=60)
 
         if response.status_code == 200:
-            answer = response.json()['choices'][0]['message']['content'].strip()
-            answer = trim_to_last_complete_sentence(answer)
+            answer = response.json()['choices'][0]['message']['content']
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
