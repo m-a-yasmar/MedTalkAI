@@ -80,12 +80,6 @@ def setup_conversation():
             session['awaiting_decision'] = True
     print("Initial session:", session.get('conversation'))
     
-def trim_to_last_complete_sentence(text):
-    sentences = text.split(". ")
-    if len(sentences) > 1:
-        return ". ".join(sentences[:-1]) + "."
-    else:
-        return text
 
 # List of exit words that should break the session
 exit_words = ["exit", "quit", "bye", "goodbye"]
