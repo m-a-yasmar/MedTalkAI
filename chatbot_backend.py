@@ -159,15 +159,15 @@ def ask():
             session['conversation'] = []
             return_message = "Alright, let's start a new conversation."
         else:
-            return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed, may I have your full name please?"
             session['awaiting_decision'] = False
             session['conversation_status'] = 'active'
-        
-        session['conversation'].append({"role": "system", "content": return_message})
+            return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed, may I have your full name please?"
+            
+        session['conversation'].append({"role": "assistant", "content": return_message})
         return jsonify({"answer": return_message})
 
     elif session.get('conversation_status', 'new') == 'new':
-        welcome_message = "Hello and a warm welcome! I'm Suzie, your medical receptionist here to assist you."
+        welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         #return jsonify({"answer": welcome_message})
@@ -207,8 +207,7 @@ def ask():
                             """}
 
             
-        conversation_with_prompt = session['conversation']
-        #conversation_with_prompt = [custom_prompt] 
+        conversation_with_prompt = [custom_prompt] + session['conversation']
 
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
