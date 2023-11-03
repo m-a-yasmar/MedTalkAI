@@ -156,14 +156,14 @@ def ask():
         elif query.lower() == 'new':
             session['awaiting_decision'] = False
             session['conversation_status'] = 'new'
-            session['conversation'] = [ ]
+            session['conversation'] = []
             return_message = "Alright, let's start a new conversation."
         else:
             return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed, may I have your full name please?"
             session['awaiting_decision'] = False
             session['conversation_status'] = 'active'
         
-        session['conversation'].append({"role": "assistant", "content": return_message})
+        session['conversation'].append({"role": "system", "content": return_message})
         return jsonify({"answer": return_message})
 
     elif session.get('conversation_status', 'new') == 'new':
