@@ -207,7 +207,8 @@ def ask():
                             """}
 
             
-        conversation_with_prompt = [custom_prompt] + session['conversation']
+        #conversation_with_prompt = [custom_prompt] + session['conversation']
+        conversation_with_prompt = [custom_prompt] 
 
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
