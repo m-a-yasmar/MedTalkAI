@@ -201,6 +201,8 @@ def ask():
                            If it is not a scheduled appointment for the day, remind the visitor to bring necessary documentation and information such as ID and Insurance. If it is a scheduled appointment on the day, remind them to show these documents to the doctor.
                            At the end of the conversation, you could conclude with a question such as:
                            'Is there anything else you need assistance with today, or do you have any other questions for me?'
+                           If ask questions about the fees or how much we charge, answer the question in the following manner:
+                           'The fees for a non specialist visit may range from $4,000 - $6,000, without insurance, while for specialist, this fee may range from $12,000 to $14,000. The nature of your insurance coverage amy determine by how much this is reduced.'
                             """}
         
         
