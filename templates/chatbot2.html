@@ -213,17 +213,11 @@
             }
         }
 
-        async function askQuestion() {
+      
+	async function askQuestion() {
             const query = document.getElementById('query').value;
-            await sendQueryToServer(query);
-            document.getElementById('query').value = '';
-        }
-
-        async function sendQueryToServer(query) {
             document.getElementById('send-button').disabled = true;
-            if (query.toLowerCase() !== 'openmessage') {
-                displayMessage(query, 'user-message');
-            }
+            displayMessage(query, 'user-message');
             const response = await fetch('/ask', {
                 method: 'POST',
                 headers: {
@@ -231,13 +225,40 @@
                 },
                 body: JSON.stringify({ query: query }),
             });
+
             const data = await response.json();
-            displayMessage(data.answer, 'bot-message');
-            textToSpeech(data.answer); // Always invoke textToSpeech here
-            saveChatHistory();
+            
+            // If the backend returned an answer, send it to generate speech
+            if (data && data.answer) {
+                textToSpeech(data.answer);
+            } else {
+                displayMessage("There was an error processing your request.", 'bot-message');
+            }
+
+            document.getElementById('query').value = ''; // Clear the input field
+            saveChatHistory(); // Save the chat history
             const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
-            document.getElementById('send-button').disabled = false;
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat
+            document.getElementById('send-button').disabled = false; // Re-enable the send button
+        }
+
+        function textToSpeech(text, voice='alloy') {
+            fetch('/generate_speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text, voice: voice }),
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const audio = new Audio(URL.createObjectURL(blob));
+                audio.play();
+            })
+            .catch(error => {
+                console.error('Error in textToSpeech:', error);
+                displayMessage("Failed to generate speech from text.", 'bot-message');
+            });
         }
 
         function displayMessage(message, className) {
