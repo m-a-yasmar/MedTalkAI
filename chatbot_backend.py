@@ -240,7 +240,7 @@ def ask():
 def generate_speech_from_text(text):
     # This function will call the OpenAI TTS API to convert the text to speech
     try:
-        response = openai.Audio.create(
+        response = openai.Audio.speech.create(
             input=text,
             voice='alloy'  # Or any other voice you prefer
         )
