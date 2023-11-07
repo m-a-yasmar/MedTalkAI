@@ -132,48 +132,43 @@
         let mediaRecorder;
         let audioChunks = [];
 
-
 	function textToSpeech(text, voice='alloy') {
-	    fetch('/generate_speech', {
-		method: 'POST',
-		headers: {
-		    'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ text: text, voice: voice }),
-	    })
-	    .then(response => {
-		if (!response.ok) {
-		    throw new Error('Network response was not ok');
-		}
-		return response.blob();
-	    })
-	    .then(blob => {
-		const audioUrl = window.URL.createObjectURL(blob);
-		const audio = new Audio(audioUrl);
-		audio.play();
-	    })
-	    .catch(error => {
-		console.error('There has been a problem with your fetch operation:', error);
-	    });
-	}
-	
-
-        // Initialize media recorder
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    await sendAudioToServer(audioBlob);
-                    audioChunks = [];
-                };
-            })
-            .catch(err => console.error('Error capturing audio.', err));
+    fetch('/generate_speech', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text, voice: voice }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.blob();
+    })
+    .then(blob => {
+        console.log('Received Blob:', blob); // Log the Blob object to the console
+
+        // Create a Blob URL for downloading
+        const blobUrl = window.URL.createObjectURL(blob);
+        console.log('Blob URL:', blobUrl); // Log the Blob URL
+
+        // Create a temporary link to download the Blob as a file
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = 'tts_output.wav'; // You can specify any filename here
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        // Play the audio
+        const audio = new Audio(blobUrl);
+        audio.play();
+    })
+    .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+    });
+}
 
         document.getElementById('record-button').addEventListener('click', () => {
             if (isRecording) {
