@@ -214,7 +214,7 @@ def ask():
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         payload = {
-            "model": "gpt-4",
+            "model": "gpt-4-1106-preview",
             "messages": conversation_with_prompt,
             "frequency_penalty": 1.0,
             "presence_penalty": -0.5
