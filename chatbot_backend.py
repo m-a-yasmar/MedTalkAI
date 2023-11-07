@@ -240,37 +240,35 @@ def ask():
 def generate_speech_from_text(text):
     # This function will call the OpenAI TTS API to convert the text to speech
     try:
-        response = openai.Audio.speech.create(
-            input=text,
-            voice='alloy'  # Or any other voice you prefer
+        response = openai.Audio.speech.create( 
+            model="tts-1",
+            voice='alloy',  
+            input=text
+    
         )
 
         # Assuming the audio file is returned directly in the response
-        audio_content = response['audio']
+        audio_content = response['data']
 
         # Create a temporary file to store the audio content
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+        temp_audio_path = os.path.join(tempfile.gettempdir(), 'speech.wav')
+        with open(temp_audio_path, 'wb') as temp_audio:
             temp_audio.write(audio_content)
-            temp_audio_path = temp_audio.name  # Save the file path to return after closing the file
-
-        # Return the audio file after exiting the context manager
-        return send_file(
-            temp_audio_path,
-            mimetype='audio/wav',
-            as_attachment=True,
-            attachment_filename='speech.wav',
-            cleanup_callback=lambda: os.unlink(temp_audio_path)
-        )
 
         return jsonify({
             "answer": "Please listen to the audio response.",
-            "audio_url": url_for('static', filename='speech.wav'),  # Assumes the audio is saved in the static folder
+            "audio_url": '/temporary/' + os.path.basename(temp_audio_path),
             "status": "success"
         })
 
     except Exception as e:
         # Handle any exceptions that occur during the request
         return jsonify({"status": "error", "message": str(e)})
+
+@chatbot.route('/temporary/<filename>')
+def temporary_file(filename):
+    file_path = os.path.join(tempfile.gettempdir(), filename)
+    return send_file(file_path, as_attachment=True)
 
         
 @chatbot.route('/generate_speech', methods=['POST'])
