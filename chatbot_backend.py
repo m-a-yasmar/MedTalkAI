@@ -244,25 +244,35 @@ def generate_speech():
     voice = data.get('voice', 'alloy')  # You can set a default voice or pass it in the request
 
     try:
-        response = Audio.create(
-            model="tts-1",
-            voice=voice,
-            input=text
+        response = requests.post(
+            "https://api.openai.com/v1/engines/davinci/tts",
+            headers={
+                "Authorization": f"Bearer {openai.api_key}"
+            },
+            json={
+                "text": text,
+                "voice": voice
+            }
         )
         
-        # Convert the binary content to a byte stream
-        byte_stream = io.BytesIO(response.content)
-        
-        # Send the audio file back to the client
-        return send_file(
-            byte_stream,
-            mimetype='audio/mpeg',
-            as_attachment=True,
-            attachment_filename='speech.mp3'
-        )
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Convert the binary content to a byte stream
+            byte_stream = io.BytesIO(response.content)
+            
+            # Send the audio file back to the client
+            return send_file(
+                byte_stream,
+                mimetype='audio/mpeg',
+                as_attachment=True,
+                attachment_filename='speech.mp3'
+            )
+        else:
+            # Handle the error if the API call failed
+            return jsonify({"status": "error", "message": "Failed to generate speech"}), response.status_code
+
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
-
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
