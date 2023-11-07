@@ -275,7 +275,6 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
         return jsonify({"answer": answer})
-        
 @chatbot.route('/generate_speech', methods=['POST'])
 def generate_speech():
     data = request.json
@@ -291,18 +290,23 @@ def generate_speech():
         
         audio_content = response.content
       
-
+        # Use a context manager to ensure the temporary file is properly closed and removed
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
             temp_audio.write(audio_content)
             temp_audio_path = temp_audio.name
         
         # Send the wav audio file back to the client
-        return send_file(
+        response = send_file(
             temp_audio_path,
             mimetype='audio/wav',
             as_attachment=True,
             attachment_filename='speech.wav'
         )
+
+        # Cleanup: remove the temporary output audio file after sending
+        os.remove(temp_audio_path)
+
+        return response
 
     except Exception as e:
         # Handle any exceptions that occur during the request
