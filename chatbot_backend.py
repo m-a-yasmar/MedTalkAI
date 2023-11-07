@@ -195,39 +195,37 @@ def generate_speech():
     voice = data.get('voice', 'alloy')  # You can set a default voice or pass it in the request
 
     try:
-        response = requests.post(
-            "https://api.openai.com/v1/engines/davinci/tts-1",
-            headers={
-                "Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}",
-               
-            },
-            json={
-                "text": text,
-                "voice": voice
-            }
+        response = openai.Audio.create(
+            model="tts-1",
+            input=text,
+            voice=voice
         )
         
-        # Check if the request was successful
-        if response.status_code == 200:
-            # Convert the MP3 content to WAV
-            mp3_audio = AudioSegment.from_file(io.BytesIO(response.content), format="mp3")
-            wav_io = io.BytesIO()
-            mp3_audio.export(wav_io, format="wav")
-            wav_io.seek(0)  # Go to the beginning of the stream
+        audio_data = response['data']
+        
+        # Convert the binary audio data to a byte stream
+        byte_stream = io.BytesIO(audio_data)
 
-            # Send the WAV audio file back to the client
-            return send_file(
-                wav_io,
-                mimetype='audio/wav',
-                as_attachment=True,
-                attachment_filename='speech.wav'
-            )
-        else:
-            # Handle the error if the API call failed
-            return jsonify({"status": "error", "message": "Failed to generate speech"}), response.status_code
+        # Read the audio data from the byte stream
+        audio = AudioSegment.from_file(byte_stream, format="mp3")
 
+        # Prepare the audio data to be sent as a response
+        wav_io = io.BytesIO()
+        audio.export(wav_io, format="wav")
+        wav_io.seek(0)  # Go to the beginning of the stream
+
+        # Send the WAV audio file back to the client
+        return send_file(
+            wav_io,
+            mimetype='audio/wav',
+            as_attachment=True,
+            attachment_filename='speech.wav'
+        )
     except Exception as e:
+        # Handle any exceptions that occur during the request
         return jsonify({"status": "error", "message": str(e)})
+        )
+        
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
