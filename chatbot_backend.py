@@ -219,7 +219,7 @@ def ask():
         response = requests.post(api_endpoint, headers=headers, json=payload, timeout=60)
 
         if response.status_code == 200:
-            answer = response.json()['choices'][0]['message']['content']
+            answer_text = response.json()['choices'][0]['message']['content']
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
@@ -228,7 +228,33 @@ def ask():
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
-        return jsonify({"answer": answer})
+        return jsonify({"answer": answer_text, "status": "success"})
+
+@chatbot.route('/generate_speech', methods=['POST'])
+def generate_speech():
+    data = request.json
+    text = data['text']
+    voice = data.get('voice', 'alloy')  # You can set a default voice or pass it in the request
+
+    try:
+        response = Audio.create(
+            model="tts-1",
+            voice=voice,
+            input=text
+        )
+        
+        # Convert the binary content to a byte stream
+        byte_stream = io.BytesIO(response.content)
+        
+        # Send the audio file back to the client
+        return send_file(
+            byte_stream,
+            mimetype='audio/mpeg',
+            as_attachment=True,
+            attachment_filename='speech.mp3'
+        )
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
             
 if __name__ == '__main__':
