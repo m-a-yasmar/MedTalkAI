@@ -250,12 +250,12 @@ def generate_speech():
         audio_content = response['data']
       
         # Use a context manager to ensure the temporary file is properly closed and removed
-         with tempfile.NamedTemporaryFile(suffix='.wav', delete=True) as temp_audio:
-            temp_audio.write(audio_content)
-            temp_audio.flush()  # Ensure all data is written to disk
-            temp_audio_path = temp_audio.name
-
-            # Send the wav audio file back to the client
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=True) as temp_audio:
+                temp_audio.write(audio_content)
+                temp_audio.flush()  # Ensure all data is written to disk
+                temp_audio_path = temp_audio.name
+    
+                # Send the wav audio file back to the client
             return send_file(
                 temp_audio_path,
                 mimetype='audio/wav',
