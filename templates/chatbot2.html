@@ -149,27 +149,14 @@
     .then(blob => {
         console.log('Received Blob:', blob); // Log the Blob object to the console
 
-        // Create a Blob URL for downloading
-        const blobUrl = window.URL.createObjectURL(blob);
-        console.log('Blob URL:', blobUrl); // Log the Blob URL
-
-        // Create a temporary link to download the Blob as a file
-        const downloadLink = document.createElement('a');
-        downloadLink.href = blobUrl;
-        downloadLink.download = 'tts_output.wav'; // You can specify any filename here
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-
-        // Play the audio
-        const audio = new Audio(blobUrl);
+        // Play the audio directly from the blob without downloading
+        const audio = new Audio(URL.createObjectURL(blob));
         audio.play();
     })
     .catch(error => {
         console.error('There has been a problem with your fetch operation:', error);
     });
 }
-
         document.getElementById('record-button').addEventListener('click', () => {
             if (isRecording) {
                 mediaRecorder.stop();
