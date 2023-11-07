@@ -231,8 +231,39 @@ def ask():
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
-        return jsonify({"answer": answer})
+        #return jsonify({"answer": answer})
+        return generate_speech_from_text(answer)
 
+def generate_speech_from_text(text):
+    # This function will call the OpenAI TTS API to convert the text to speech
+    try:
+        response = openai.Audio.create(
+            input=text,
+            voice='alloy'  # Or any other voice you prefer
+        )
+
+        # Assuming the audio file is returned directly in the response
+        audio_content = response['audio']
+
+        # Create a temporary file to store the audio content
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+            temp_audio.write(audio_content)
+            temp_audio_path = temp_audio.name  # Save the file path to return after closing the file
+
+        # Return the audio file after exiting the context manager
+        return send_file(
+            temp_audio_path,
+            mimetype='audio/wav',
+            as_attachment=True,
+            attachment_filename='speech.wav',
+            cleanup_callback=lambda: os.unlink(temp_audio_path)
+        )
+
+    except Exception as e:
+        # Handle any exceptions that occur during the request
+        return jsonify({"status": "error", "message": str(e)})
+
+        
 @chatbot.route('/generate_speech', methods=['POST'])
 def generate_speech():
     data = request.json
