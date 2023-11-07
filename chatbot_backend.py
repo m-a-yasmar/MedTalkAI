@@ -49,7 +49,7 @@ def text_to_speech_internal(text):
             input=text,
             voice='alloy'  # or any other voice you wish to use
         )
-        return response.audio
+        return response.content
     except Exception as e:
         logging.error("Failed to generate speech: {}".format(e))
         raise
