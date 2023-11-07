@@ -245,9 +245,10 @@ def generate_speech():
 
     try:
         response = requests.post(
-            "https://api.openai.com/v1/engines/davinci/tts",
+            "https://api.openai.com/v1/engines/davinci/tts-1",
             headers={
-                "Authorization": f"Bearer {openai.api_key}"
+                "Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}",
+               
             },
             json={
                 "text": text,
