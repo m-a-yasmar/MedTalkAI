@@ -13,9 +13,12 @@ import tempfile
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import io
 from flask import send_file
-from pydub import AudioSegment 
+import io
+from openai import OpenAI
+from pydub import AudioSegment
+from pydub.playback import play
+from flask import Response
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -26,7 +29,7 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret_medical_app2'  # Replace with your secret key
+chatbot.secret_key = 'actual_voice_secret_medical_app1'  # Replace with your secret key
 openai.api_key = os.environ.get('MEDTALK_API_KEY')
 
 # Predefined answers
@@ -66,8 +69,7 @@ def audio_upload():
             session['transcribed_text'] = transcribed_text  # Store the transcribed text in the session
             return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "Audio uploaded and transcribed successfully. Proceeding to answer."})
     except Exception as e:
-        return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "An error occurred while uploading and transcribing the audio."})
-        
+        return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
@@ -102,6 +104,9 @@ def exempt_users():
 @limiter.limit("6 per minute; 20 per 10 minutes; 30 per hour")
 def custom_limit_request_error():
     return jsonify({"message": "Too many requests, please try again later"}), 429
+
+
+
 
 @chatbot.route('/ask', methods=['POST'])
 def ask():
@@ -227,85 +232,39 @@ def ask():
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
-            
-            return jsonify({"answer": answer, "status": "success"})
         else:
-            return jsonify({"answer": "I'm sorry, I couldn't understand the question.", "status": "error"})
+            answer = "I'm sorry, I couldn't understand the question."
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
-        #return jsonify({"answer": answer})
-        return generate_speech_from_text(answer)
+        return jsonify({"answer": answer})
 
-def generate_speech_from_text(text):
-    # This function will call the OpenAI TTS API to convert the text to speech
-    try:
-        response = openai.Audio.speech.create( 
-            model="tts-1",
-            voice='alloy',  
-            input=text
-    
-        )
-
-        # Assuming the audio file is returned directly in the response
-        audio_content = response['data']
-
-        # Create a temporary file to store the audio content
-        temp_audio_path = os.path.join(tempfile.gettempdir(), 'speech.wav')
-        with open(temp_audio_path, 'wb') as temp_audio:
-            temp_audio.write(audio_content)
-
-        return jsonify({
-            "answer": "Please listen to the audio response.",
-            "audio_url": '/temporary/' + os.path.basename(temp_audio_path),
-            "status": "success"
-        })
-
-    except Exception as e:
-        # Handle any exceptions that occur during the request
-        return jsonify({"status": "error", "message": str(e)})
-
-@chatbot.route('/temporary/<filename>')
-def temporary_file(filename):
-    file_path = os.path.join(tempfile.gettempdir(), filename)
-    return send_file(file_path, as_attachment=True)
-
-        
-@chatbot.route('/generate_speech', methods=['POST'])
-def generate_speech():
-    data = request.json
-    text = data['text']
-    voice = data.get('voice', 'alloy')  # You can set a default voice or pass it in the request
+@chatbot.route('/speech', methods=['POST'])
+def speech():
+    # Assuming you want to use the last message from the conversation for TTS
+    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
 
     try:
-        response = openai.Audio.speech.create(
+        response = openai.Audio.create(
             model="tts-1",
-            input=text,
-            voice=voice
+            input=last_message,  # Use the last message as input for TTS
+            voice='alloy'
         )
-        
-        #audio_content = response.content
-        audio_content = response['data']
-      
-        # Use a context manager to ensure the temporary file is properly closed and removed
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
-                temp_audio.write(audio_content)
-                temp_audio.flush()  # Ensure all data is written to disk
-                temp_audio_path = temp_audio.name
-    
-                # Send the wav audio file back to the client
-                return send_file(
-                    temp_audio_path,
-                    mimetype='audio/wav',
-                    as_attachment=True,
-                    attachment_filename='speech.wav'
-                )
-        # The file will be automatically deleted when the context manager block is exited
 
+        # The response should contain the audio data in binary format
+        #audio_data = response['data']
+        audio_data = response['audio']
+        print(response)
+
+        # Create a Flask Response object that sets the right content type for audio files
+        return Response(audio_data, mimetype='audio/wav')
+    
     except Exception as e:
-        # Handle any exceptions that occur during the request
-        return jsonify({"status": "error", "message": str(e)})
+        # Implement appropriate error handling
+        return jsonify({"error": str(e)})
+
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     chatbot.run(host='0.0.0.0', port=port)
+
