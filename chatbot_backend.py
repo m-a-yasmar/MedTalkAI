@@ -246,36 +246,27 @@ def generate_speech():
             voice=voice
         )
         
-        audio_content = response.content
+        #audio_content = response.content
+        audio_content = response['data']
       
         # Use a context manager to ensure the temporary file is properly closed and removed
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+         with tempfile.NamedTemporaryFile(suffix='.wav', delete=True) as temp_audio:
             temp_audio.write(audio_content)
+            temp_audio.flush()  # Ensure all data is written to disk
             temp_audio_path = temp_audio.name
-        
-        # Send the wav audio file back to the client
-        
 
-        response = send_file(
-            temp_audio_path,
-            mimetype='audio/wav',
-            as_attachment=True,
-            attachment_filename='speech.wav'
-        )
-        
-        # Ensure the file is not removed before it is sent
-        try:
-            os.unlink(temp_audio_path)
-        except Exception as e:
-            logging.error(f"Error deleting temporary file: {e}")
-        
-        return response
+            # Send the wav audio file back to the client
+            return send_file(
+                temp_audio_path,
+                mimetype='audio/wav',
+                as_attachment=True,
+                attachment_filename='speech.wav'
+            )
+        # The file will be automatically deleted when the context manager block is exited
 
     except Exception as e:
         # Handle any exceptions that occur during the request
         return jsonify({"status": "error", "message": str(e)})
-
-
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
