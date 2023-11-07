@@ -156,7 +156,7 @@
         // Create a temporary link to download the Blob as a file
         const downloadLink = document.createElement('a');
         downloadLink.href = blobUrl;
-        downloadLink.download = 'tts_output.wav'; // You can specify any filename here
+        downloadLink.download = 'tts_output.mp3'; // You can specify any filename here
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -187,7 +187,7 @@
         async function sendAudioToServer(audioBlob) {
             // Existing code for sending audio to the server
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.wav');
+            formData.append('audio', audioBlob, 'audio.mp3');
             const response = await fetch('/audio_upload', {
                 method: 'POST',
                 body: formData,
