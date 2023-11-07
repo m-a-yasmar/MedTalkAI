@@ -19,9 +19,6 @@ from pydub import AudioSegment
 from pydub.playback import play
 from flask import Response
 
-from openai import OpenAI
-
-client = OpenAI()
 logging.basicConfig(level=logging.DEBUG)
 
 chatbot = Flask(__name__)
