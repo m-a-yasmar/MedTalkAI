@@ -256,12 +256,12 @@ def generate_speech():
                 temp_audio_path = temp_audio.name
     
                 # Send the wav audio file back to the client
-            return send_file(
-                temp_audio_path,
-                mimetype='audio/wav',
-                as_attachment=True,
-                attachment_filename='speech.wav'
-            )
+                return send_file(
+                    temp_audio_path,
+                    mimetype='audio/wav',
+                    as_attachment=True,
+                    attachment_filename='speech.wav'
+                )
         # The file will be automatically deleted when the context manager block is exited
 
     except Exception as e:
