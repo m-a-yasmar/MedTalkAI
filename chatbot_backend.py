@@ -55,7 +55,7 @@ def audio_upload():
     
     
     # Create a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
         temp_audio.write(audio_data)
         temp_path = temp_audio.name
 
@@ -249,7 +249,7 @@ def generate_speech():
         audio_content = response.content
       
         # Use a context manager to ensure the temporary file is properly closed and removed
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
+        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
             temp_audio.write(audio_content)
             temp_audio_path = temp_audio.name
         
@@ -258,9 +258,9 @@ def generate_speech():
 
         response = send_file(
             temp_audio_path,
-            mimetype='audio/wav',
+            mimetype='audio/mp3',
             as_attachment=True,
-            attachment_filename='speech.wav'
+            attachment_filename='speech.mp3'
         )
         
         # Ensure the file is not removed before it is sent
