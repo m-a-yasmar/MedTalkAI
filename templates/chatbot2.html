@@ -182,12 +182,72 @@
         document.getElementById('send-button').disabled = false; // Re-enable the send button
     }
 
-    // Function to initialize the chat
-    async function initChat() {
-        loadChatHistory(); // Load chat history here
-        const query = "openmessage";
-        await sendQueryToServer(query);
+    async function startRecording() {
+    if (!isRecording) {
+        try {
+            // Request permissions and capture the media stream
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+
+            // Collect the audio data chunks
+            audioChunks = [];
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            // Start recording
+            mediaRecorder.start();
+            isRecording = true;
+            document.getElementById('record-button').textContent = 'Stop Recording';
+            document.getElementById('record-button').style.backgroundColor = 'green';
+
+            // When the recorder stops, call sendAudioToServer with the audio data
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav' });
+                await sendAudioToServer(audioBlob);
+            };
+        } catch (error) {
+            console.error('Error starting recording:', error);
+        }
+    } else {
+        // Stop recording
+        mediaRecorder.stop();
+        isRecording = false;
+        document.getElementById('record-button').textContent = 'Start Recording';
+        document.getElementById('record-button').style.backgroundColor = 'red';
     }
+}
+
+    async function initChat() {
+    loadChatHistory(); // Load chat history here
+
+    try {
+        const response = await fetch('/start_chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: "openmessage" }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Display the welcome message if it exists in the response
+        if (data && data.welcomeMessage) {
+            displayMessage(data.welcomeMessage, 'bot-message');
+        } else {
+            // Handle any other messages or errors
+            displayMessage("Welcome to MedTalkAI!", 'bot-message');
+        }
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        displayMessage("Error initializing chat.", 'bot-message');
+    }
+}
 
     // Function to save chat history to local storage
     function saveChatHistory() {
