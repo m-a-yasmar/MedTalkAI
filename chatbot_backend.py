@@ -248,16 +248,16 @@ def generate_speech():
         
         audio_content = response.content
 
-        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio:
             temp_audio.write(audio_content)
             temp_audio_path = temp_audio.name
         
-        # Send the MP3 audio file back to the client
+        # Send the wav audio file back to the client
         return send_file(
             temp_audio_path,
-            mimetype='audio/mp3',
+            mimetype='audio/wav',
             as_attachment=True,
-            attachment_filename='speech.mp3'
+            attachment_filename='speech.wav'
         )
 
     except Exception as e:
