@@ -148,7 +148,7 @@
 		return response.blob();
 	    })
 	    .then(blob => {
-		const audioUrl = URL.createObjectURL(blob);
+		const audioUrl = window.URL.createObjectURL(blob);
 		const audio = new Audio(audioUrl);
 		audio.play();
 	    })
