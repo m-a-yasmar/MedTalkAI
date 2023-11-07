@@ -66,7 +66,8 @@ def audio_upload():
             session['transcribed_text'] = transcribed_text  # Store the transcribed text in the session
             return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "Audio uploaded and transcribed successfully. Proceeding to answer."})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
+        return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "An error occurred while uploading and transcribing the audio."})
+        
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
@@ -226,8 +227,10 @@ def ask():
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
+            
+            return jsonify({"answer": answer, "status": "success"})
         else:
-            answer = "I'm sorry, I couldn't understand the question."
+            return jsonify({"answer": "I'm sorry, I couldn't understand the question.", "status": "error"})
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
@@ -258,6 +261,12 @@ def generate_speech_from_text(text):
             attachment_filename='speech.wav',
             cleanup_callback=lambda: os.unlink(temp_audio_path)
         )
+
+        return jsonify({
+            "answer": "Please listen to the audio response.",
+            "audio_url": url_for('static', filename='speech.wav'),  # Assumes the audio is saved in the static folder
+            "status": "success"
+        })
 
     except Exception as e:
         # Handle any exceptions that occur during the request
