@@ -218,16 +218,17 @@
     }
 }
 
-    async function initChat() {
+    // Function to initialize the chat
+async function initChat() {
     loadChatHistory(); // Load chat history here
 
     try {
-        const response = await fetch('/start_chat', {
+        const response = await fetch('/ask', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query: "openmessage" }),
+            body: JSON.stringify({ query: "openmessage" }), // Adjust the query to match the backend expectations
         });
 
         if (!response.ok) {
@@ -236,9 +237,9 @@
 
         const data = await response.json();
         
-        // Display the welcome message if it exists in the response
-        if (data && data.welcomeMessage) {
-            displayMessage(data.welcomeMessage, 'bot-message');
+        // Assuming the backend sends the 'answer' in the JSON response
+        if (data && data.answer) {
+            displayMessage(data.answer, 'bot-message');
         } else {
             // Handle any other messages or errors
             displayMessage("Welcome to MedTalkAI!", 'bot-message');
@@ -248,7 +249,6 @@
         displayMessage("Error initializing chat.", 'bot-message');
     }
 }
-
     // Function to save chat history to local storage
     function saveChatHistory() {
         const chatBox = document.getElementById('chat-box');
