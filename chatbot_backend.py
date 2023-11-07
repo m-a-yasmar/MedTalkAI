@@ -13,6 +13,9 @@ import tempfile
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import io
+from flask import send_file
+from pydub import AudioSegment 
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -243,27 +246,18 @@ def generate_speech():
             voice=voice
         )
         
-        audio_content = response.content
+        audio_content = response['data']
 
         with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
             temp_audio.write(audio_content)
             temp_audio_path = temp_audio.name
-        
-        # Optionally, if you want to convert to WAV using pydub
-        audio = AudioSegment.from_mp3(temp_audio_path)
-        wav_io = io.BytesIO()
-        audio.export(wav_io, format="wav")
-        wav_io.seek(0)  # Go to the beginning of the stream
-
-        # Cleanup the temporary MP3 file
-        os.remove(temp_audio_path)
 
         # Send the WAV audio file back to the client
-        return send_file(
-            wav_io,
-            mimetype='audio/wav',
+         return send_file(
+            temp_audio_path,
+            mimetype='audio/mp3',
             as_attachment=True,
-            attachment_filename='speech.wav'
+            attachment_filename='speech.mp3'
         )
 
     except Exception as e:
