@@ -42,17 +42,6 @@ predefined_answers = {
 vectorizer = TfidfVectorizer()
 vectorizer.fit(predefined_answers.keys())
 
-def text_to_speech_internal(text):
-    try:
-        response = openai.Audio.speech.create(
-            model="tts-1",
-            input=text,
-            voice='alloy'  # or any other voice you wish to use
-        )
-        return response.content
-    except Exception as e:
-        logging.error("Failed to generate speech: {}".format(e))
-        raise
 @chatbot.route('/', methods=['GET'])
 def home():
     return render_template('chatbot2.html')
@@ -63,43 +52,21 @@ def serve_image(filename):
 @chatbot.route('/audio_upload', methods=['POST'])
 def audio_upload():
     audio_data = request.files['audio'].read()
+    
+    
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio:
+        temp_audio.write(audio_data)
+        temp_path = temp_audio.name
 
     try:
-        # Use a context manager to ensure the temporary file is properly closed and removed
-        with tempfile.NamedTemporaryFile(suffix=".wav") as temp_audio:
-            temp_audio.write(audio_data)
-            temp_audio.flush()  # Ensure data is written to the file
-
-            transcript = openai.Audio.transcribe("whisper-1", open(temp_audio.name, "rb"))
+        with open(temp_path, "rb") as audio_file:
+            transcript = openai.Audio.transcribe("whisper-1", audio_file)
             transcribed_text = transcript['text']
-
-            # Store the transcribed text in the session
-            session['transcribed_text'] = transcribed_text
-
-            # Call the text_to_speech_internal function
-            audio_content = text_to_speech_internal(transcribed_text)
-
-            # Create another temporary file for the output audio
-            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_audio_file:
-                temp_audio_file.write(audio_content)
-                temp_audio_path = temp_audio_file.name
-
-            # Send the wav audio file back to the client
-            response = send_file(
-                temp_audio_path,
-                mimetype='audio/wav',
-                as_attachment=True,
-                attachment_filename='speech.wav'
-            )
-
-            # Cleanup: remove the temporary output audio file after sending
-            os.remove(temp_audio_path)
-
-            return response
-
+            session['transcribed_text'] = transcribed_text  # Store the transcribed text in the session
+            return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "Audio uploaded and transcribed successfully. Proceeding to answer."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
-
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
@@ -138,15 +105,7 @@ def custom_limit_request_error():
 @chatbot.route('/ask', methods=['POST'])
 def ask():
     threshold = 0.9
-    query= None
-    transcribed_text = session.get('transcribed_text', None)
-    if transcribed_text:
-        query = transcribed_text
-    else:
-        query = request.json.get('query')
-
-    if not query:
-         return jsonify({"answer": "No query received"})
+    query = request.json.get('query')
     max_tokens = 50
     tokens = query.split()
     exit_words = ["exit", "quit", "bye", "goodbye"]
@@ -255,7 +214,7 @@ def ask():
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         payload = {
-            "model": "gpt-4-1106-preview",
+            "model": "gpt-4",
             "messages": conversation_with_prompt,
             "frequency_penalty": 1.0,
             "presence_penalty": -0.5
@@ -270,11 +229,10 @@ def ask():
         else:
             answer = "I'm sorry, I couldn't understand the question."
 
-        session.pop('transcribed_text', None)
-
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
         return jsonify({"answer": answer})
+
 @chatbot.route('/generate_speech', methods=['POST'])
 def generate_speech():
     data = request.json
@@ -297,7 +255,7 @@ def generate_speech():
         
         # Send the wav audio file back to the client
         
-                # ... rest of the generate_speech code ...
+
         response = send_file(
             temp_audio_path,
             mimetype='audio/wav',
@@ -317,6 +275,8 @@ def generate_speech():
         # Handle any exceptions that occur during the request
         return jsonify({"status": "error", "message": str(e)})
 
+
+            
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     chatbot.run(host='0.0.0.0', port=port)
