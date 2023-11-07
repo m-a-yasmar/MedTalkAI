@@ -19,7 +19,7 @@ from pydub import AudioSegment
 from pydub.playback import play
 from flask import Response
 
-
+client = OpenAI()
 logging.basicConfig(level=logging.DEBUG)
 
 chatbot = Flask(__name__)
@@ -247,7 +247,7 @@ def speech():
     
 
     try:
-        response = openai.audio.speech.create(
+        response = client.audio.speech.create(
             model="tts-1",
             input=last_message,  # Use the last message as input for TTS
             voice='alloy'
