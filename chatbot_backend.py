@@ -257,15 +257,18 @@ def generate_speech():
         
         # Check if the request was successful
         if response.status_code == 200:
-            # Convert the binary content to a byte stream
-            byte_stream = io.BytesIO(response.content)
-            
-            # Send the audio file back to the client
+            # Convert the MP3 content to WAV
+            mp3_audio = AudioSegment.from_file(io.BytesIO(response.content), format="mp3")
+            wav_io = io.BytesIO()
+            mp3_audio.export(wav_io, format="wav")
+            wav_io.seek(0)  # Go to the beginning of the stream
+
+            # Send the WAV audio file back to the client
             return send_file(
-                byte_stream,
-                mimetype='audio/mpeg',
+                wav_io,
+                mimetype='audio/wav',
                 as_attachment=True,
-                attachment_filename='speech.mp3'
+                attachment_filename='speech.wav'
             )
         else:
             # Handle the error if the API call failed
