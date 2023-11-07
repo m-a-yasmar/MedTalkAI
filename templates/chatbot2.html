@@ -1,297 +1,178 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>MedTalkAI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Receptionist Chatbot</title>
     <style>
-        :root {
-            --primary-bg-color: #fdb913;
-            --primary-text-color: white;
-            --secondary-bg-color: #20603d;
-            --button-bg: #000000;
-        }
+        /* Add your styling here */
         body {
             font-family: Arial, sans-serif;
-            background-image: url('/images/Medtalk.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
             margin: 0;
             padding: 0;
+            background: #f4f4f4;
         }
-        #chat-container {
-            max-width: 750px;
-            width: 100%;
-            height: 700px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        .container {
+            width: 80%;
+            margin: auto;
             overflow: hidden;
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
         }
-        #chat-header {
-            background: var(--primary-bg-color);
-            color: var(--primary-text-color);
-            padding: 1rem;
-            text-align: center;
+        header {
+            background: #50b3a2;
+            color: white;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #e8491d 3px solid;
         }
-        #chat-box {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: scroll;
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
         }
-        .message {
-            margin-bottom: 20px;
+        header ul {
+            padding: 0;
+            list-style: none;
+        }
+        header li {
+            float: left;
+            display: inline;
+            padding: 0 20px 0 20px;
+        }
+        header #branding {
+            float: left;
+        }
+        header #branding h1 {
+            margin: 0;
+        }
+        header nav {
+            float: right;
+            margin-top: 10px;
+        }
+        header .highlight, header .current a {
+            color: #e8491d;
+            font-weight: bold;
+        }
+        header a:hover {
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .chat-interface {
+            margin: 20px;
+            padding: 20px;
+            background: #fff;
+        }
+        .chat-interface #conversation {
+            height: 300px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            overflow-y: auto;
             padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
-        .user-message {
-            text-align: right;
-            background-color: var(--secondary-bg-color);
-            color: var(--primary-text-color);
+        .chat-interface form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-gap: 10px;
         }
-        .bot-message {
-            text-align: left;
-            background-color: var(--primary-bg-color);
-            color: var(--primary-text-color);
+        .chat-interface input, .chat-interface textarea {
+            padding: 10px;
+            margin-bottom: 10px;
         }
-        #chat-input {
-	    display: flex;
-	    width: 100px;
-            border-top: 1px solid #ccc;
-        }
-        #query {
-            flex: 1;
-            padding: 1rem;
-            border: none;
-	    font-size: 14px; 
-        }
-        #send-button {
-            width: 60px;
-	    font-size: 14px;
-            background: var(--button-bg);
-            color: var(--primary-text-color);
-            border: none;
-            cursor: pointer;
-        }
-        #record-button {
-            width: 100px;
-	    font-size: 14px;
-            background: red;
-            color: var(--primary-text-color);
-            border: none;
-            cursor: pointer;
-        }
-        #start-chat-btn {
-            padding: 1px 1px;
-            font-size: 14px;
-            background: var(--button-bg);
-            color: var(--primary-text-color);
-            border: none;
-            cursor: pointer;
-            display: block;
-            width: 100px;
-            margin: 1px auto;
-            text-align: left;
+        .chat-interface button {
+            padding: 10px;
+            background: #50b3a2;
+            color: white;
+            border: 0;
         }
     </style>
 </head>
 <body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1>Medical Receptionist Chatbot</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li class="current"><a href="/">Home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-<section id="chat-container" aria-labelledby="chat-header" role="region">
-    <header id="chat-header">MedTalkAI</header>
-    <div id="ios-disclaimer" class="disclaimer" style="display:none;">
-        Attention iOS users: The voice recording feature is not supported on iOS devices. Please use the text input for your queries.
-    </div>
-    <article id="chat-box" role="log" aria-live="polite"></article>
-    <form id="chat-input" enctype="multipart/form-data" onsubmit="return false;" aria-label="Chat input form">
-        <input type="text" id="query" placeholder="How can I help you today?" aria-label="Type your query here" onkeydown="if (event.keyCode === 13) { askQuestion(); }">
-        <button id="send-button" type="button" onclick="askQuestion()" aria-label="Send your query">Ask</button>
-        <button id="record-button" type="button" onclick="startRecording()" aria-label="Start recording">Start Recording</button>
-        <button id="start-chat-btn" type="button" onclick="initChat()" aria-label="Start the chat">Tap to Start Chat</button>
-        <button id="test-speech-button" type="button" onclick="textToSpeech('Hello, this is a test.')" aria-label="Test Text to Speech">Test Speech</button>
-    </form>
-</section>
+    <section class="chat-interface">
+        <div class="container">
+            <div id="conversation"></div>
+            <form id="audioForm">
+                <input type="file" id="audioInput" accept="audio/*">
+                <button type="submit">Upload Audio</button>
+            </form>
+            <form id="textForm">
+                <textarea id="textInput" rows="4" placeholder="Type your message here..."></textarea>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </section>
 
-<script>
-    // Check if the user's device is iOS and show a disclaimer if it is
-    function checkForiOS() {
-        var isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isiOS) {
-            document.getElementById('ios-disclaimer').style.display = 'block';
-        }
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioForm = document.getElementById('audioForm');
+            const textForm = document.getElementById('textForm');
+            const audioInput = document.getElementById('audioInput');
+            const textInput = document.getElementById('textInput');
+            const conversation = document.getElementById('conversation');
 
-    // Initialize recording variables
-    let isRecording = false;
-    let mediaRecorder;
-    let audioChunks = [];
-
-    // Function to convert text to speech
-    function textToSpeech(text, voice='alloy') {
-        fetch('/generate_speech', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ text: text, voice: voice }),
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            const audio = new Audio(URL.createObjectURL(blob));
-            audio.play();
-        })
-        .catch(error => {
-            console.error('Error in textToSpeech:', error);
-            displayMessage("Failed to generate speech from text.", 'bot-message');
-        });
-    }
-
-    // Function to display messages in the chat
-    function displayMessage(message, className) {
-        const chatBox = document.getElementById('chat-box');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${className}`;
-        messageDiv.innerText = message;
-        chatBox.appendChild(messageDiv);
-    }
-
-    // Function to ask a question via the chat
-    async function askQuestion() {
-    const query = document.getElementById('query').value;
-    document.getElementById('send-button').disabled = true;
-    displayMessage(query, 'user-message');
-    
-    try {
-        const response = await fetch('/ask', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query: query }),
-        });
-
-        // Check if the response is OK and the content type is audio
-        if (response.ok && response.headers.get("content-type").includes("audio/wav")) {
-            const blob = await response.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            const audio = new Audio(audioUrl);
-            audio.play();
-            // Possibly update the UI to show that the audio is playing
-        } else if (response.ok) {
-            // Handle JSON response
-            const data = await response.json();
-            textToSpeech(data.answer); // Convert the answer to speech
-            // Handle rest of the JSON response
-        } else {
-            // Handle non-OK responses
-            throw new Error('Network response was not ok.');
-        }
-    } catch (error) {
-        console.error('Error in askQuestion:', error);
-        displayMessage("Failed to get a response.", 'bot-message');
-    } finally {
-        document.getElementById('send-button').disabled = false; // Re-enable the send button
-    }
-    document.getElementById('query').value = ''; // Clear the input field
-}
-
-  
-    async function startRecording() {
-    if (!isRecording) {
-        try {
-            // Request permissions and capture the media stream
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-
-            // Collect the audio data chunks
-            audioChunks = [];
-            mediaRecorder.ondataavailable = event => {
-                audioChunks.push(event.data);
+            audioForm.onsubmit = function(e) {
+                e.preventDefault();
+                let formData = new FormData();
+                formData.append('audio', audioInput.files[0]);
+                fetch('/audio_upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        conversation.innerHTML += '<p><strong>Transcribed Text:</strong> ' + data.transcribed_text + '</p>';
+                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
+                    } else {
+                        conversation.innerHTML += '<p><strong>Error:</strong> ' + data.message + '</p>';
+                    }
+                })
+                .catch(error => {
+                    conversation.innerHTML += '<p><strong>Error:</strong> ' + error.message + '</p>';
+                });
             };
 
-            // Start recording
-            mediaRecorder.start();
-            isRecording = true;
-            document.getElementById('record-button').textContent = 'Stop Recording';
-            document.getElementById('record-button').style.backgroundColor = 'green';
-
-            // When the recorder stops, call sendAudioToServer with the audio data
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav' });
-                await sendAudioToServer(audioBlob);
+            textForm.onsubmit = function(e) {
+                e.preventDefault();
+                const text = textInput.value;
+                fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({query: text})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    conversation.innerHTML += '<p><strong>You:</strong> ' + text + '</p>';
+                    if (data.status === 'end_session') {
+                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
+                    } else {
+                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
+                        if (data.audio) {
+                            let audio = new Audio(data.audio);
+                            audio.play();
+                        }
+                    }
+                })
+                .catch(error => {
+                    conversation.innerHTML += '<p><strong>Error:</strong> ' + error.message + '</p>';
+                });
+                textInput.value = ''; // Clear the text input
             };
-        } catch (error) {
-            console.error('Error starting recording:', error);
-        }
-    } else {
-        // Stop recording
-        mediaRecorder.stop();
-        isRecording = false;
-        document.getElementById('record-button').textContent = 'Start Recording';
-        document.getElementById('record-button').style.backgroundColor = 'red';
-    }
-}
-
-    // Function to initialize the chat
-async function initChat() {
-    loadChatHistory(); // Load chat history here
-
-    try {
-        const response = await fetch('/ask', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query: "openmessage" }), // Adjust the query to match the backend expectations
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // Assuming the backend sends the 'answer' in the JSON response
-        if (data && data.answer) {
-            displayMessage(data.answer, 'bot-message');
-        } else {
-            // Handle any other messages or errors
-            displayMessage("Welcome to MedTalkAI!", 'bot-message');
-        }
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-        displayMessage("Error initializing chat.", 'bot-message');
-    }
-}
-    // Function to save chat history to local storage
-    function saveChatHistory() {
-        const chatBox = document.getElementById('chat-box');
-        localStorage.setItem('chatHistory', chatBox.innerHTML);
-    }
-
-    // Function to load chat history from local storage
-    function loadChatHistory() {
-        const savedChat = localStorage.getItem('chatHistory');
-        if (savedChat) {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML = savedChat;
-        }
-    }
-
-    // Event listener to handle the document being loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        var startChatBtn = document.getElementById('start-chat-btn');
-        startChatBtn.addEventListener('click', function() {
-            initChat().then(() => console.log('Chat initialized'));
-            startChatBtn.style.display = 'none';
-        });
-        checkForiOS(); // Check for iOS devices on load
-    });
-</script>
+    </script>
 </body>
 </html>
