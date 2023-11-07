@@ -296,16 +296,21 @@ def generate_speech():
             temp_audio_path = temp_audio.name
         
         # Send the wav audio file back to the client
+        
+                # ... rest of the generate_speech code ...
         response = send_file(
             temp_audio_path,
             mimetype='audio/wav',
             as_attachment=True,
             attachment_filename='speech.wav'
         )
-
-        # Cleanup: remove the temporary output audio file after sending
-        os.remove(temp_audio_path)
-
+        
+        # Ensure the file is not removed before it is sent
+        try:
+            os.unlink(temp_audio_path)
+        except Exception as e:
+            logging.error(f"Error deleting temporary file: {e}")
+        
         return response
 
     except Exception as e:
