@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Receptionist Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha384-SZXxX4whvUmV1H3pB4L7h9PJwqJp9eXrK1z5zEfrPHo...EjH7jn1...duZq..." crossorigin="anonymous">
+    <style>
     <style>
         /* Add your styling here */
         body {
@@ -85,9 +87,47 @@
             border: 0;
         }
     </style>
+       
+        /* Additional styling for audio controls */
+        .audio-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        /* Styling for the send button to have an icon */
+        .send-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .send-btn i {
+            margin-left: 5px;
+        }
+        /* Styling to visually indicate when the system is processing */
+        .processing {
+            color: #e8491d;
+        }
+    </style>
 </head>
 <body>
     <header>
+        <!-- Your header content -->
+    </header>
+
+    <section class="chat-interface">
+        <div class="container">
+            <div id="conversation"></div>
+            <form id="audioForm" class="audio-control">
+                <input type="file" id="audioInput" accept="audio/*">
+                <button type="submit" class="send-btn">Upload Audio <i class="fas fa-upload"></i></button>
+            </form>
+            <form id="textForm">
+                <textarea id="textInput" rows="4" placeholder="Type your message here..."></textarea>
+                <button type="submit" class="send-btn">Send <i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </section>
+     <header>
         <div class="container">
             <div id="branding">
                 <h1>Medical Receptionist Chatbot</h1>
@@ -99,21 +139,6 @@
             </nav>
         </div>
     </header>
-
-    <section class="chat-interface">
-        <div class="container">
-            <div id="conversation"></div>
-            <form id="audioForm">
-                <input type="file" id="audioInput" accept="audio/*">
-                <button type="submit">Upload Audio</button>
-            </form>
-            <form id="textForm">
-                <textarea id="textInput" rows="4" placeholder="Type your message here..."></textarea>
-                <button type="submit">Send</button>
-            </form>
-        </div>
-    </section>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const audioForm = document.getElementById('audioForm');
@@ -122,10 +147,24 @@
             const textInput = document.getElementById('textInput');
             const conversation = document.getElementById('conversation');
 
+            function appendMessage(role, text) {
+                conversation.innerHTML += '<p><strong>' + role + ':</strong> ' + text + '</p>';
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+
+            function playAudioFromBlob(blob) {
+                let url = URL.createObjectURL(blob);
+                let audio = new Audio(url);
+                audio.play();
+            }
+
             audioForm.onsubmit = function(e) {
                 e.preventDefault();
                 let formData = new FormData();
                 formData.append('audio', audioInput.files[0]);
+
+                appendMessage('You', '<em class="processing">Processing audio...</em>');
+
                 fetch('/audio_upload', {
                     method: 'POST',
                     body: formData
@@ -133,20 +172,27 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        conversation.innerHTML += '<p><strong>Transcribed Text:</strong> ' + data.transcribed_text + '</p>';
-                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
+                        appendMessage('Transcribed Text', data.transcribed_text);
+                        appendMessage('Bot', data.answer);
+                        if (data.audio_url) {
+                            fetch(data.audio_url)
+                                .then(response => response.blob())
+                                .then(blob => playAudioFromBlob(blob));
+                        }
                     } else {
-                        conversation.innerHTML += '<p><strong>Error:</strong> ' + data.message + '</p>';
+                        appendMessage('Error', data.message);
                     }
                 })
                 .catch(error => {
-                    conversation.innerHTML += '<p><strong>Error:</strong> ' + error.message + '</p>';
+                    appendMessage('Error', error.message);
                 });
             };
 
             textForm.onsubmit = function(e) {
                 e.preventDefault();
                 const text = textInput.value;
+                appendMessage('You', text);
+
                 fetch('/ask', {
                     method: 'POST',
                     headers: {
@@ -156,19 +202,19 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    conversation.innerHTML += '<p><strong>You:</strong> ' + text + '</p>';
                     if (data.status === 'end_session') {
-                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
+                        appendMessage('Bot', data.answer);
                     } else {
-                        conversation.innerHTML += '<p><strong>Bot:</strong> ' + data.answer + '</p>';
-                        if (data.audio) {
-                            let audio = new Audio(data.audio);
-                            audio.play();
+                        appendMessage('Bot', data.answer);
+                        if (data.audio_url) {
+                            fetch(data.audio_url)
+                                .then(response => response.blob())
+                                .then(blob => playAudioFromBlob(blob));
                         }
                     }
                 })
                 .catch(error => {
-                    conversation.innerHTML += '<p><strong>Error:</strong> ' + error.message + '</p>';
+                    appendMessage('Error', error.message);
                 });
                 textInput.value = ''; // Clear the text input
             };
