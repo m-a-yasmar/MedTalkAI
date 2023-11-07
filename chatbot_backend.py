@@ -247,7 +247,7 @@ def speech():
     
 
     try:
-        response = openai.Audio.create(
+        response = openai.create_audio(
             model="tts-1",
             input=last_message,  # Use the last message as input for TTS
             voice='alloy'
