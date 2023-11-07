@@ -13,6 +13,9 @@ import tempfile
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import io
+from flask import send_file
+
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -224,11 +227,15 @@ def ask():
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
+            session['conversation'].append({"role": "assistant", "content": answer_text})
+            session.modified = True
+            return jsonify({"answer": answer_text, "status": "success"})
+                
         else:
+            error_message = "An error occurred while processing your request."
+            session['conversation'].append({"role": "assistant", "content": error_message})
+            return jsonify({"answer": error_message, "status": "error"})
 
-        session['conversation'].append({"role": "assistant", "content": answer})
-        session.modified = True
-        return jsonify({"answer": answer_text, "status": "success"})
 
 @chatbot.route('/generate_speech', methods=['POST'])
 def generate_speech():
