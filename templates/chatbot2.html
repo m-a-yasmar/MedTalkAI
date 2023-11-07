@@ -3,6 +3,7 @@
 <head>
     <title>MedTalkAI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style>
         :root {
             --primary-bg-color: #fdb913;
@@ -101,185 +102,117 @@
 </head>
 <body>
 
-      <section id="chat-container" aria-labelledby="chat-header" role="region">
-        <header id="chat-header">MedTalkAI</header>
-        <div id="ios-disclaimer" class="disclaimer" style="display:none;">
-            Attention iOS users: The voice recording feature is not supported on iOS devices. Please use the text input for your queries.
-        </div>
-        <article id="chat-box" role="log" aria-live="polite"></article>
-        <form id="chat-input" enctype="multipart/form-data" onsubmit="return false;" aria-label="Chat input form">
-            <input type="text" id="query" placeholder="How can I help you today?" aria-label="Type your query here" onkeydown="if (event.keyCode === 13) { askQuestion(); }">
-            <button id="send-button" type="button" onclick="askQuestion()" aria-label="Send your query">Ask</button>
-            <button id="record-button" type="button" onclick="startRecording()" aria-label="Start recording">Start Recording</button>
-            <button id="start-chat-btn" type="button" onclick="initChat()" aria-label="Start the chat">Tap to Start Chat</button>
-	    <button id="test-speech-button" type="button" onclick="textToSpeech('Hello, this is a test.')" aria-label="Test Text to Speech">Test Speech</button>
+<section id="chat-container" aria-labelledby="chat-header" role="region">
+    <header id="chat-header">MedTalkAI</header>
+    <div id="ios-disclaimer" class="disclaimer" style="display:none;">
+        Attention iOS users: The voice recording feature is not supported on iOS devices. Please use the text input for your queries.
+    </div>
+    <article id="chat-box" role="log" aria-live="polite"></article>
+    <form id="chat-input" enctype="multipart/form-data" onsubmit="return false;" aria-label="Chat input form">
+        <input type="text" id="query" placeholder="How can I help you today?" aria-label="Type your query here" onkeydown="if (event.keyCode === 13) { askQuestion(); }">
+        <button id="send-button" type="button" onclick="askQuestion()" aria-label="Send your query">Ask</button>
+        <button id="record-button" type="button" onclick="startRecording()" aria-label="Start recording">Start Recording</button>
+        <button id="start-chat-btn" type="button" onclick="initChat()" aria-label="Start the chat">Tap to Start Chat</button>
+        <button id="test-speech-button" type="button" onclick="textToSpeech('Hello, this is a test.')" aria-label="Test Text to Speech">Test Speech</button>
+    </form>
+</section>
 
-	    
-        </form>
-    </section>
-
-    <script>
-        function checkForiOS() {
-            // Check if the user's device is iOS
-            var isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isiOS) {
-                // Show the iOS-specific disclaimer
-                document.getElementById('ios-disclaimer').style.display = 'block';
-            }
+<script>
+    // Check if the user's device is iOS and show a disclaimer if it is
+    function checkForiOS() {
+        var isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isiOS) {
+            document.getElementById('ios-disclaimer').style.display = 'block';
         }
-        
-        let isRecording = false;
-        let mediaRecorder;
-        let audioChunks = [];
+    }
 
-	function textToSpeech(text, voice='alloy') {
-    fetch('/generate_speech', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: text, voice: voice }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    // Initialize recording variables
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // Function to convert text to speech
+    function textToSpeech(text, voice='alloy') {
+        fetch('/generate_speech', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text, voice: voice }),
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const audio = new Audio(URL.createObjectURL(blob));
+            audio.play();
+        })
+        .catch(error => {
+            console.error('Error in textToSpeech:', error);
+            displayMessage("Failed to generate speech from text.", 'bot-message');
+        });
+    }
+
+    // Function to display messages in the chat
+    function displayMessage(message, className) {
+        const chatBox = document.getElementById('chat-box');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${className}`;
+        messageDiv.innerText = message;
+        chatBox.appendChild(messageDiv);
+    }
+
+    // Function to ask a question via the chat
+    async function askQuestion() {
+        const query = document.getElementById('query').value;
+        document.getElementById('send-button').disabled = true;
+        displayMessage(query, 'user-message');
+        const response = await fetch('/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: query }),
+        });
+
+        const data = await response.json();
+        textToSpeech(data.answer); // Convert the answer to speech
+        document.getElementById('query').value = ''; // Clear the input field
+        saveChatHistory(); // Save the chat history
+        const chatBox = document.getElementById('chat-box');
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat
+        document.getElementById('send-button').disabled = false; // Re-enable the send button
+    }
+
+    // Function to initialize the chat
+    async function initChat() {
+        loadChatHistory(); // Load chat history here
+        const query = "openmessage";
+        await sendQueryToServer(query);
+    }
+
+    // Function to save chat history to local storage
+    function saveChatHistory() {
+        const chatBox = document.getElementById('chat-box');
+        localStorage.setItem('chatHistory', chatBox.innerHTML);
+    }
+
+    // Function to load chat history from local storage
+    function loadChatHistory() {
+        const savedChat = localStorage.getItem('chatHistory');
+        if (savedChat) {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = savedChat;
         }
-        return response.blob();
-    })
-    .then(blob => {
-        console.log('Received Blob:', blob); // Log the Blob object to the console
+    }
 
-        // Play the audio directly from the blob without downloading
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
-    })
-    .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
+    // Event listener to handle the document being loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        var startChatBtn = document.getElementById('start-chat-btn');
+        startChatBtn.addEventListener('click', function() {
+            initChat().then(() => console.log('Chat initialized'));
+            startChatBtn.style.display = 'none';
+        });
+        checkForiOS(); // Check for iOS devices on load
     });
-}
-        document.getElementById('record-button').addEventListener('click', () => {
-            if (isRecording) {
-                mediaRecorder.stop();
-                document.getElementById('record-button').textContent = 'Start Recording';
-                document.getElementById('record-button').style.backgroundColor = 'red';
-                isRecording = false;
-            } else {
-                mediaRecorder.start();
-                document.getElementById('record-button').textContent = 'Stop Recording';
-                document.getElementById('record-button').style.backgroundColor = 'green';
-                isRecording = true;
-            }
-        });
-
-        async function sendAudioToServer(audioBlob) {
-            // Existing code for sending audio to the server
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.wav');
-            const response = await fetch('/audio_upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await response.json();
-            displayMessage(data.answer, 'bot-message'); // Displaying the message that audio is successfully uploaded and transcribed
-            
-            if (data.status === "end_session") {
-                localStorage.removeItem('chatHistory'); // Clear chat history
-                await sendQueryToServer('start new session'); 
-                initChat(); 
-            }
-            
-            // New code for sending transcribed text as a query
-            if (data.status === "success") {
-                await sendQueryToServer(data.transcribed_text);
-            }
-        }
-
-        async function initChat() {
-            loadChatHistory(); // Load chat history here
-            const query = "openmessage";
-            await sendQueryToServer(query);
-        }
-
-        function saveChatHistory() {
-            const chatBox = document.getElementById('chat-box');
-            localStorage.setItem('chatHistory', chatBox.innerHTML);
-        }
-
-        function loadChatHistory() {
-            const savedChat = localStorage.getItem('chatHistory');
-            if (savedChat) {
-                const chatBox = document.getElementById('chat-box');
-                chatBox.innerHTML = savedChat;
-            }
-        }
-
-      
-	async function askQuestion() {
-            const query = document.getElementById('query').value;
-            document.getElementById('send-button').disabled = true;
-            displayMessage(query, 'user-message');
-            const response = await fetch('/ask', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query: query }),
-            });
-
-            const data = await response.json();
-            
-            // If the backend returned an answer, send it to generate speech
-            if (data && data.answer) {
-                textToSpeech(data.answer);
-            } else {
-                displayMessage("There was an error processing your request.", 'bot-message');
-            }
-
-            document.getElementById('query').value = ''; // Clear the input field
-            saveChatHistory(); // Save the chat history
-            const chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat
-            document.getElementById('send-button').disabled = false; // Re-enable the send button
-        }
-
-        function textToSpeech(text, voice='alloy') {
-            fetch('/generate_speech', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text: text, voice: voice }),
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const audio = new Audio(URL.createObjectURL(blob));
-                audio.play();
-            })
-            .catch(error => {
-                console.error('Error in textToSpeech:', error);
-                displayMessage("Failed to generate speech from text.", 'bot-message');
-            });
-        }
-
-        function displayMessage(message, className) {
-            const chatBox = document.getElementById('chat-box');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className}`;
-            messageDiv.innerText = message;
-            chatBox.appendChild(messageDiv);
-        }
-
-        // This event listener should be outside any other function
-        document.addEventListener('DOMContentLoaded', function() {
-            var startChatBtn = document.getElementById('start-chat-btn');
-            
-            startChatBtn.addEventListener('click', function() {
-                initChat().then(() => console.log('Chat initialized'));
-                startChatBtn.style.display = 'none';
-            });
-        });
-
-        checkForiOS();
-    </script>
+</script>
 </body>
 </html>
