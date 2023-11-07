@@ -162,9 +162,11 @@
 
     // Function to ask a question via the chat
     async function askQuestion() {
-        const query = document.getElementById('query').value;
-        document.getElementById('send-button').disabled = true;
-        displayMessage(query, 'user-message');
+    const query = document.getElementById('query').value;
+    document.getElementById('send-button').disabled = true;
+    displayMessage(query, 'user-message');
+    
+    try {
         const response = await fetch('/ask', {
             method: 'POST',
             headers: {
@@ -173,15 +175,32 @@
             body: JSON.stringify({ query: query }),
         });
 
-        const data = await response.json();
-        textToSpeech(data.answer); // Convert the answer to speech
-        document.getElementById('query').value = ''; // Clear the input field
-        saveChatHistory(); // Save the chat history
-        const chatBox = document.getElementById('chat-box');
-        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat
+        // Check if the response is OK and the content type is audio
+        if (response.ok && response.headers.get("content-type").includes("audio/wav")) {
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+            // Possibly update the UI to show that the audio is playing
+        } else if (response.ok) {
+            // Handle JSON response
+            const data = await response.json();
+            textToSpeech(data.answer); // Convert the answer to speech
+            // Handle rest of the JSON response
+        } else {
+            // Handle non-OK responses
+            throw new Error('Network response was not ok.');
+        }
+    } catch (error) {
+        console.error('Error in askQuestion:', error);
+        displayMessage("Failed to get a response.", 'bot-message');
+    } finally {
         document.getElementById('send-button').disabled = false; // Re-enable the send button
     }
+    document.getElementById('query').value = ''; // Clear the input field
+}
 
+  
     async function startRecording() {
     if (!isRecording) {
         try {
