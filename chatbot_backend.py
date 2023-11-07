@@ -217,14 +217,14 @@ def ask():
             "presence_penalty": -0.5
         }
         response = requests.post(api_endpoint, headers=headers, json=payload, timeout=60)
-
+        answer = "I'm sorry, I couldn't understand the question."
+        
         if response.status_code == 200:
             answer_text = response.json()['choices'][0]['message']['content']
             forbidden_phrases = ["I am a model trained", "As an AI model", "My training data includes", "ChatGPT","OpenAI"]
             for phrase in forbidden_phrases:
                 answer = answer.replace(phrase, "")
         else:
-            answer = "I'm sorry, I couldn't understand the question."
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
