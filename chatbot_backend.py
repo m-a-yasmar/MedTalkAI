@@ -195,24 +195,26 @@ def generate_speech():
     voice = data.get('voice', 'alloy')  # You can set a default voice or pass it in the request
 
     try:
-        response = openai.Audio.create(
+        response = openai.Audio.speech.create(
             model="tts-1",
             input=text,
             voice=voice
         )
         
-        audio_data = response['data']
+        audio_content = response.content
+
+        with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp_audio:
+            temp_audio.write(audio_content)
+            temp_audio_path = temp_audio.name
         
-        # Convert the binary audio data to a byte stream
-        byte_stream = io.BytesIO(audio_data)
-
-        # Read the audio data from the byte stream
-        audio = AudioSegment.from_file(byte_stream, format="mp3")
-
-        # Prepare the audio data to be sent as a response
+        # Optionally, if you want to convert to WAV using pydub
+        audio = AudioSegment.from_mp3(temp_audio_path)
         wav_io = io.BytesIO()
         audio.export(wav_io, format="wav")
         wav_io.seek(0)  # Go to the beginning of the stream
+
+        # Cleanup the temporary MP3 file
+        os.remove(temp_audio_path)
 
         # Send the WAV audio file back to the client
         return send_file(
@@ -221,10 +223,11 @@ def generate_speech():
             as_attachment=True,
             attachment_filename='speech.wav'
         )
+
     except Exception as e:
         # Handle any exceptions that occur during the request
         return jsonify({"status": "error", "message": str(e)})
-        )
+
         
             
 if __name__ == '__main__':
