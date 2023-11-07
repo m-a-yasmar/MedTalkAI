@@ -139,7 +139,7 @@ def custom_limit_request_error():
 def ask():
     threshold = 0.9
     query= None
-    transcribed_text = session.pop('transcribed_text', None)
+    transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
         query = transcribed_text
     else:
@@ -269,6 +269,8 @@ def ask():
                 answer = answer.replace(phrase, "")
         else:
             answer = "I'm sorry, I couldn't understand the question."
+
+        session.pop('transcribed_text', None)
 
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True
