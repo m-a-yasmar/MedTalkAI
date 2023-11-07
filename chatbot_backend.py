@@ -242,6 +242,9 @@ def ask():
 def speech():
     # Assuming you want to use the last message from the conversation for TTS
     last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
+    print("Last message to be converted to speech:", last_message)
+
+    
 
     try:
         response = openai.Audio.create(
@@ -249,16 +252,21 @@ def speech():
             input=last_message,  # Use the last message as input for TTS
             voice='alloy'
         )
-
+        
+        print("TTS API response:", response)
+    
         # The response should contain the audio data in binary format
         #audio_data = response['data']
         audio_data = response['audio']
-        print(response)
+        print("Audio data type:", type(audio_data))
+        print("Audio data length:", len(audio_data))
+    
 
         # Create a Flask Response object that sets the right content type for audio files
         return Response(audio_data, mimetype='audio/wav')
     
     except Exception as e:
+        print("Error during TTS API call:", e)
         # Implement appropriate error handling
         return jsonify({"error": str(e)})
 
