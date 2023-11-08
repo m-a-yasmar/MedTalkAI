@@ -126,7 +126,7 @@ def ask():
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.clear()  # Clear the session
-        session['cleared'] = True  # Indicate that the session has been cleared
+        session['cleared'] = False  # Indicate that the session has been cleared#####
         session['returning_user'] = False  # Resetting the flags immediately
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
