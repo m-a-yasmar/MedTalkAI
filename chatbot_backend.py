@@ -238,16 +238,10 @@ def ask():
         return jsonify({"answer": answer})
 
 @chatbot.route('/speech', methods=['POST'])
-#def speech():
-    # Assuming you want to use the last message from the conversation for TTS
-  #  last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
-   # print("Last message to be converted to speech:", last_message)
-
-@chatbot.route('/speech', methods=['POST'])
 def speech():
-    data = request.json
-    text_to_convert = data.get('text') if data else "Welcome to the chatbot."
-    print("Text to be converted to speech:", text_to_convert)
+    # Assuming you want to use the last message from the conversation for TTS
+    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
+    print("Last message to be converted to speech:", last_message)
 
     try:
      
