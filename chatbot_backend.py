@@ -126,7 +126,7 @@ def ask():
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         session.clear()  # Clear the session
-        session['cleared'] = False  # Indicate that the session has been cleared#####
+        session['cleared'] = True  # Indicate that the session has been cleared#####
         session['returning_user'] = False  # Resetting the flags immediately
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
@@ -214,13 +214,13 @@ def ask():
         
         
         conversation_with_prompt = [custom_prompt] + session['conversation']
-        mess = session['conversation']####
+        #mess = session['conversation']####
 
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         payload = {
-            "model": "gpt-4",
-            "messages": mess, ######
+            "model": "gpt-4-1106-preview",
+            "messages": conversation_with_prompt, ######
             "frequency_penalty": 1.0,
             "presence_penalty": -0.5
         }
