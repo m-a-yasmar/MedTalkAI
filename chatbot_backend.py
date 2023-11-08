@@ -27,7 +27,7 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret_medical_app1'  # Replace with your secret key
+chatbot.secret_key = 'actual_voice_secret_medical_app8'  # Replace with your secret key
 openai.api_key = os.environ.get('MEDTALK_API_KEY')
 
 # Predefined answers
@@ -240,7 +240,7 @@ def ask():
 @chatbot.route('/speech', methods=['POST'])
 def speech():
     # Assuming you want to use the last message from the conversation for TTS
-    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
+    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome, I'm Sam."
     print("Last message to be converted to speech:", last_message)
 
     try:
@@ -270,15 +270,6 @@ def speech():
         
         print("TTS API response:", response)
     
-        # The response should contain the audio data in binary format
-        #audio_data = response['data']
-        audio_data = response['audio']
-        #print("Audio data type:", type(audio_data))
-        #print("Audio data length:", len(audio_data))
-    
-
-        # Create a Flask Response object that sets the right content type for audio files
-        #return Response(audio_data, mimetype='audio/wav')
     
     except Exception as e:
         print("Error during TTS API call:", e)
