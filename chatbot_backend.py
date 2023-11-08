@@ -234,13 +234,13 @@ def ask():
             answer = "I'm sorry, I couldn't understand the question."
 
         session['conversation'].append({"role": "assistant", "content": answer})
-        session.modified = True
+        #session.modified = True #####
         return jsonify({"answer": answer})
 
 @chatbot.route('/speech', methods=['POST'])
 def speech():
     # Assuming you want to use the last message from the conversation for TTS
-    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome, I'm Sam."
+    last_message = session['conversation'][-1]["content"] if session['conversation'] else "Thank you for your visit. Have a wonderful day. Goodbye!"
     print("Last message to be converted to speech:", last_message)
 
     try:
