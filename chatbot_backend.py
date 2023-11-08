@@ -214,12 +214,13 @@ def ask():
         
         
         conversation_with_prompt = [custom_prompt] + session['conversation']
+        mess = session['conversation']####
 
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         payload = {
             "model": "gpt-4",
-            "messages": conversation_with_prompt,
+            "messages": mess, ######
             "frequency_penalty": 1.0,
             "presence_penalty": -0.5
         }
@@ -234,7 +235,7 @@ def ask():
             answer = "I'm sorry, I couldn't understand the question."
 
         session['conversation'].append({"role": "assistant", "content": answer})
-        #session.modified = True #####
+        session.modified = True #
         return jsonify({"answer": answer})
 
 @chatbot.route('/speech', methods=['POST'])
