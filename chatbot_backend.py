@@ -243,38 +243,40 @@ def speech():
     last_message = session['conversation'][-1]["content"] if session['conversation'] else "Welcome to the chatbot."
     print("Last message to be converted to speech:", last_message)
 
-    
-
     try:
         #api_endpoint = "https://api.openai.com/v1/audio/speech"
-        headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
-        data = {
-            "model": "tts-1",
-            "input": last_message,  # Use the last message as input for TTS
-            "voice": "alloy"
-        }
+        response = requests.post('https://api.openai.com/v1/audio/speech',
+            headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
+            json = {
+                "model": "tts-1",
+                "input": last_message,  # Use the last message as input for TTS
+                "voice": "alloy"
+            }
+        )
         #response = requests.post(api_endpoint, headers=headers, json=data)
-        response = requests.post('https://api.openai.com/v1/audio/speech', headers=headers, json=data)
+        #response = requests.post('https://api.openai.com/v1/audio/speech', headers=headers, json=data)
         
         if response.status_code == 200:
             audio_data = response.content 
+            return Response(audio_data, mimetype='audio/mpeg')
             # Save the audio to a file
-            with open('speech.mp3', 'wb') as f:
-                f.write(response.content)
+            #with open('speech.mp3', 'wb') as f:
+             #   f.write(response.content)
         else:
             print(f"Failed to generate speech: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to generate speech"}), response.status_code
         
         print("TTS API response:", response)
     
         # The response should contain the audio data in binary format
         #audio_data = response['data']
         audio_data = response['audio']
-        print("Audio data type:", type(audio_data))
-        print("Audio data length:", len(audio_data))
+        #print("Audio data type:", type(audio_data))
+        #print("Audio data length:", len(audio_data))
     
 
         # Create a Flask Response object that sets the right content type for audio files
-        return Response(audio_data, mimetype='audio/wav')
+        #return Response(audio_data, mimetype='audio/wav')
     
     except Exception as e:
         print("Error during TTS API call:", e)
