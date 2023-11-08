@@ -246,8 +246,8 @@ def speech():
     try:
         #api_endpoint = "https://api.openai.com/v1/audio/speech"
         response = requests.post('https://api.openai.com/v1/audio/speech',
-            headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
-            json = {
+            headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"},
+            json={
                 "model": "tts-1",
                 "input": last_message,  # Use the last message as input for TTS
                 "voice": "alloy"
