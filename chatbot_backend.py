@@ -246,16 +246,18 @@ def speech():
     
 
     try:
-        api_endpoint = "https://api.openai.com/v1/audio/speech"
+        #api_endpoint = "https://api.openai.com/v1/audio/speech"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
         data = {
             "model": "tts-1",
             "input": last_message,  # Use the last message as input for TTS
             "voice": "alloy"
         }
-        response = requests.post(api_endpoint, headers=headers, json=data)
+        #response = requests.post(api_endpoint, headers=headers, json=data)
+        response = requests.post('https://api.openai.com/v1/audio/speech', headers=headers, json=data)
         
         if response.status_code == 200:
+            audio_data = response.content 
             # Save the audio to a file
             with open('speech.mp3', 'wb') as f:
                 f.write(response.content)
