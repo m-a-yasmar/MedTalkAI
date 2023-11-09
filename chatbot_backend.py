@@ -81,7 +81,6 @@ def setup_conversation():
         print("New session being initialised")
         session['conversation'] = []
         session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
         session['cleared'] = False
 
         # Check for the unique ID cookie to identify returning users
@@ -135,7 +134,6 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
         session['cleared'] = False
         session.modified = True #
         return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
@@ -146,7 +144,6 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
         session['cleared'] = True
         session.modified = True #
         return jsonify({"answer": goodbye_message, "status": "end_session"})
@@ -155,7 +152,6 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
         session['cleared'] = False
         session.modified = True #
             
@@ -190,7 +186,7 @@ def ask():
         session.modified = True #
         return jsonify({"answer": return_message})
 
-    elif session.get('conversation_status', 'new') == 'new':
+    if not session['conversation']:
         welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
