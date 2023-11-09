@@ -130,13 +130,13 @@
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             
-            // Check if Opus is supported and play the audio
+            // Check if AAC is supported and play the audio
             const audio = new Audio(audioUrl);
-            if (audio.canPlayType('audio/ogg; codecs=opus')) {
-                audio.type = 'audio/ogg; codecs=opus';
-                console.log('Playing Opus audio');
+            if (audio.canPlayType('audio/aac)) {
+                audio.type = 'audio/aac';
+                console.log('Playing AAC audio');
             } else {
-                console.warn('Opus audio format is not supported. Playing the default audio format.');
+                console.warn('AAC audio format is not supported. Playing the default audio format.');
             }
             audio.play();
         } catch (error) {
