@@ -191,7 +191,7 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         session.modified = True #
-        #return jsonify({"answer": welcome_message})
+        return jsonify({"answer": welcome_message})######
     
 
    
