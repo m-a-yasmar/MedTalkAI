@@ -255,13 +255,13 @@ def speech():
                 "model": "tts-1",
                 "input": last_message,
                 "voice": "alloy",
-                "output_format": "opus"  # Specify the desired output format here
+                "output_format": "aac"  # Specify the desired output format here
             }
         )
         
         if response.status_code == 200:
             audio_data = response.content 
-            return Response(audio_data, mimetype='audio/ogg')  # Ensure the MIME type matches the format
+            return Response(audio_data, mimetype='audio/aac')  # Ensure the MIME type matches the format
         else:
             return jsonify({"error": "Failed to generate speech"}), response.status_code
     except Exception as e:
