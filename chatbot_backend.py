@@ -121,6 +121,7 @@ def ask():
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = False
+        session.modified = True #
         return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
 
     if any(word.lower() in query.lower() for word in exit_words):
@@ -131,6 +132,7 @@ def ask():
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = True
+        session.modified = True #
         return jsonify({"answer": goodbye_message, "status": "end_session"})
 
     if session.get('cleared', False):
@@ -139,6 +141,7 @@ def ask():
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = False
+        session.modified = True #
             
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
@@ -168,12 +171,14 @@ def ask():
             session['conversation_status'] = 'active'
         
         session['conversation'].append({"role": "assistant", "content": return_message})
+        session.modified = True #
         return jsonify({"answer": return_message})
 
     elif session.get('conversation_status', 'new') == 'new':
         welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
+        session.modified = True #
         #return jsonify({"answer": welcome_message})
     
 
