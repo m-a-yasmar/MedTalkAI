@@ -18,7 +18,7 @@ import io
 from pydub import AudioSegment
 from pydub.playback import play
 from flask import Response
-
+from flask import make_response
 logging.basicConfig(level=logging.DEBUG)
 
 chatbot = Flask(__name__)
@@ -27,8 +27,14 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret_medical_app8'  # Replace with your secret key
+chatbot.secret_key = 'actual_voice_secret_medical_app9'  # Replace with your secret key
 openai.api_key = os.environ.get('MEDTALK_API_KEY')
+
+import uuid
+
+def generate_unique_id():
+    return str(uuid.uuid4())
+
 
 # Predefined answers
 predefined_answers = {
@@ -68,22 +74,34 @@ def audio_upload():
             return jsonify({"status": "success", "transcribed_text": transcribed_text, "answer": "Audio uploaded and transcribed successfully. Proceeding to answer."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e), "answer": "An error occurred while uploading and transcribing the audio."})
+
 @chatbot.before_request
 def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
         print("New session being initialised")
         session['conversation'] = []
-        session['returning_user'] = False
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = False
+
+        # Check for the unique ID cookie to identify returning users
+        user_id = request.cookies.get('user_id')
+        if user_id:
+            print("Returning user with ID:", user_id)
+            session['returning_user'] = True
+        else:
+            print("No user ID cookie found, setting new one")
+            user_id = generate_unique_id()
+            session['returning_user'] = False
+            # Set the cookie in the response after the request is processed
+            response = make_response(render_template('chatbot2.html'))
+            response.set_cookie('user_id', user_id, max_age=60*60*24*365*2)  # Expires in 2 years
+            return response
+
     else:
         print("Existing session found")
-        if not session.get('returning_user', False):
-            session['returning_user'] = True
-            session['awaiting_decision'] = True
+        session['returning_user'] = True  # This will now be true for all requests with an existing session
     print("Initial session:", session.get('conversation'))
-    
 
 # List of exit words that should break the session
 exit_words = ["exit", "quit", "bye", "goodbye"]
