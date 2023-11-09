@@ -261,7 +261,8 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": answer})
         session.modified = True #
         return jsonify({"answer": answer})
-@app.route('/speech', methods=['POST'])
+        
+@chatbot.route('/speech', methods=['POST'])
 def speech():
     last_message = session['conversation'][-1]["content"] if session['conversation'] else "Thank you for your visit. Have a wonderful day. Goodbye!"
     print("Last message to be converted to speech:", last_message)
