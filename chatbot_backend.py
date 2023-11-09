@@ -101,7 +101,7 @@ def exempt_users():
 #@limiter.limit("5 per minute")
 @limiter.limit("6 per minute; 20 per 10 minutes; 30 per hour")
 def custom_limit_request_error():
-    return jsonify({"message": "Too many requests, please try again later"}), 429
+    return jsonify({"answer": "Too many requests, please try again later"}), 429
 
 
 
