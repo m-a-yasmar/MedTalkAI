@@ -115,27 +115,34 @@
         </form>
     </section>
     <script>
-    async function playTextAsSpeech(text) {
-            try {
-                const response = await fetch('/speech', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ text: text }),
-                });
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
-                }
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                audio.play();
-            } catch (error) {
-                console.error('Error playing text-to-speech:', error);
+     async function playTextAsSpeech(text) {
+        try {
+            const response = await fetch('/speech', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text }),
+            });
+            if (!response.ok) {
+                throw new Error(`Server responded with status ${response.status}`);
             }
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            // Check if Opus is supported and play the audio
+            const audio = new Audio(audioUrl);
+            if (audio.canPlayType('audio/ogg; codecs=opus')) {
+                audio.type = 'audio/ogg; codecs=opus';
+                console.log('Playing Opus audio');
+            } else {
+                console.warn('Opus audio format is not supported. Playing the default audio format.');
+            }
+            audio.play();
+        } catch (error) {
+            console.error('Error playing text-to-speech:', error);
         }
-
+    }
   
         function checkForiOS() {
             // Check if the user's device is iOS
