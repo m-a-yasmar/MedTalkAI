@@ -264,31 +264,44 @@ def ask():
         
 @chatbot.route('/speech', methods=['POST'])
 def speech():
+    # Assuming you want to use the last message from the conversation for TTS
     last_message = session['conversation'][-1]["content"] if session['conversation'] else "Thank you for your visit. Have a wonderful day. Goodbye!"
     print("Last message to be converted to speech:", last_message)
-    
+
     try:
+     
         response = requests.post('https://api.openai.com/v1/audio/speech',
-            headers={"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"},
+            headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"},
             json={
                 "model": "tts-1",
-                "input": last_message,
-                "voice": "alloy",
-                "output_format": "opus"  # Specify the desired output format here
+                "input": last_message,  # Use the last message as input for TTS
+                "voice": "alloy"
             }
         )
+        #response = requests.post(api_endpoint, headers=headers, json=data)
+        #response = requests.post('https://api.openai.com/v1/audio/speech', headers=headers, json=data)
         
         if response.status_code == 200:
             audio_data = response.content 
-            return Response(audio_data, mimetype='audio/opus')  # Ensure the MIME type matches the format
+            return Response(audio_data, mimetype='audio/mpeg')
             print("Received audio data, length:", len(audio_data))
+
+            # Save the audio to a file
+            #with open('speech.mp3', 'wb') as f:
+             #   f.write(response.content)
         else:
+            print(f"Failed to generate speech: {response.status_code} - {response.text}")
             return jsonify({"error": "Failed to generate speech"}), response.status_code
+        
+        print("TTS API response:", response)
+    
+    
     except Exception as e:
+        print("Error during TTS API call:", e)
+        # Implement appropriate error handling
         return jsonify({"error": str(e)})
 
             
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     chatbot.run(host='0.0.0.0', port=port)
-
