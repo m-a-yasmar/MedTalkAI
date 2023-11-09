@@ -27,7 +27,7 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret_medical_app8'  # Replace with your secret key
+chatbot.secret_key = 'actual_voice_secret_medical_app10'  # Replace with your secret key
 openai.api_key = os.environ.get('MEDTALK_API_KEY')
 
 # Predefined answers
@@ -261,7 +261,7 @@ def speech():
         
         if response.status_code == 200:
             audio_data = response.content 
-            return Response(audio_data, mimetype='audio/ogg')  # Ensure the MIME type matches the format
+            return Response(audio_data, mimetype='audio/opus')  # Ensure the MIME type matches the format
         else:
             return jsonify({"error": "Failed to generate speech"}), response.status_code
     except Exception as e:
