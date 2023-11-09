@@ -132,12 +132,6 @@
             
             // Check if AAC is supported and play the audio
             const audio = new Audio(audioUrl);
-            if (audio.canPlayType('audio/aac)) {
-                audio.type = 'audio/aac';
-                console.log('Playing AAC audio');
-            } else {
-                console.warn('AAC audio format is not supported. Playing the default audio format.');
-            }
             audio.play();
         } catch (error) {
             console.error('Error playing text-to-speech:', error);
