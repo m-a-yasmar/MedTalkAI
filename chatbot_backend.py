@@ -283,7 +283,7 @@ def speech():
         
         if response.status_code == 200:
             audio_data = response.content 
-            return Response(audio_data, mimetype='audio/mpeg')
+            return Response(audio_data, mimetype='audio/opus') #mpeg
             print("Received audio data, length:", len(audio_data))
 
             # Save the audio to a file
