@@ -81,6 +81,7 @@ def setup_conversation():
         print("New session being initialised")
         session['conversation'] = []
         session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
         session['cleared'] = False
 
         # Check for the unique ID cookie to identify returning users
@@ -134,6 +135,7 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
         session['cleared'] = False
         session.modified = True #
         return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
@@ -144,6 +146,7 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
         session['cleared'] = True
         session.modified = True #
         return jsonify({"answer": goodbye_message, "status": "end_session"})
@@ -152,6 +155,7 @@ def ask():
         session['conversation'] = []
         session['returning_user'] = False
         session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
         session['cleared'] = False
         session.modified = True #
             
@@ -186,14 +190,14 @@ def ask():
         session.modified = True #
         return jsonify({"answer": return_message})
 
-    if not session['conversation']:
+    
+    elif session.get('conversation_status', 'new') == 'new':
         welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         session.modified = True #
-        return jsonify({"answer": welcome_message})######
+        #return jsonify({"answer": welcome_message})
     
-
    
     elif session.get('conversation_status', 'active') == 'active':
          
@@ -232,7 +236,6 @@ def ask():
         
         
         conversation_with_prompt = [custom_prompt] + session['conversation']
-        #mess = session['conversation']####
 
         api_endpoint = "https://api.openai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {os.environ.get('MEDTALK_API_KEY')}", "Content-Type": "application/json"}
