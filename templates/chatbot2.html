@@ -245,12 +245,20 @@
             }
         }
 
-        async function askQuestion() {
-            const query = document.getElementById('query').value;
-            await sendQueryToServer(query);
-            document.getElementById('query').value = '';
-            
-        }
+	async function askQuestion() {
+	    const query = document.getElementById('query').value;
+	
+	    // Check for session control commands
+	    if (query.toLowerCase() === 'start new session' || query.toLowerCase() === 'continue session') {
+	        // Handle session control logic here
+	        await sendQueryToServer(query);
+	    } else {
+	        // Regular query handling
+	        await sendQueryToServer(query);
+	    }
+	    document.getElementById('query').value = '';
+	}
+
         function displayMessage(message, className) {
             const chatBox = document.getElementById('chat-box');
             const messageDiv = document.createElement('div');
