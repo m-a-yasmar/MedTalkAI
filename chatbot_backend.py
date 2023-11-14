@@ -139,6 +139,15 @@ def ask():
         session['cleared'] = False
         session.modified = True #
         return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
+        
+    if query.lower() == 'continue session':
+        session['conversation'] = []
+        session['returning_user'] = True
+        session['awaiting_decision'] = True
+        session['cleared'] = False
+        session.modified = True
+        return jsonify({"answer": "Continuing from where we left off. What would you like to discuss?"})
+    
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
