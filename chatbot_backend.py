@@ -180,7 +180,7 @@ def ask():
     query_vector = vectorizer.transform([query])
     
     if session.get('returning_user', False) and session.get('awaiting_decision', True):
-        if query.lower() == 'continue':
+        if query.lower() == 'continue session':
             session['awaiting_decision'] = False
             session['conversation_status'] = 'active'
         elif query.lower() == 'new':
