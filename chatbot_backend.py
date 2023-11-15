@@ -136,8 +136,9 @@ def ask():
         session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = True
-        session.modified = True #
         session['conversation'] = []
+        session.modified = True #
+        
         return jsonify({"answer": goodbye_message, "status": "end_session"})
             
     if len(tokens) > max_tokens:
