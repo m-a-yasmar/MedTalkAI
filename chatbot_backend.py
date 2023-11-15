@@ -148,7 +148,7 @@ def ask():
     transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
         query = transcribed_text
-        del session['transcribed_text']
+        #del session['transcribed_text']
 
     query_vector = vectorizer.transform([query])
     
