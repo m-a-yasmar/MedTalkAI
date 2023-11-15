@@ -153,21 +153,16 @@ def ask():
     query_vector = vectorizer.transform([query])
     
     if session.get('returning_user', False) and session.get('awaiting_decision', True):
-        if query.lower() == 'continue session':
-            session['awaiting_decision'] = False
-            session['conversation_status'] = 'active'
-        elif query.lower() == 'new':
-            session['awaiting_decision'] = False
-            session['conversation_status'] = 'new'
-            session['conversation'] = [
-                {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
-            ]
-            return_message = "Alright, let's start a new conversation."
-        else:
-            return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
-            session['awaiting_decision'] = False
-            session['conversation_status'] = 'active'
-        
+        session['conversation_status'] = 'active'
+        session['conversation'] = [
+            {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
+        ]
+        return_message = "Alright, let's start a new conversation."
+    else:
+        return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'active'
+    
         session['conversation'].append({"role": "assistant", "content": return_message})
         session.modified = True #
         return jsonify({"answer": return_message})
@@ -180,7 +175,6 @@ def ask():
         #return jsonify({"answer": welcome_message})
    
     elif session.get('conversation_status', 'active') == 'active':
-        session['conversation'] = []
         custom_prompt = {
             "role": "system",
             "content": """"As a skilled medical receptionist, your expertise lies in creating a welcoming and efficient experience for patients as they navigate their healthcare journey. With a courteous and attentive approach, 
