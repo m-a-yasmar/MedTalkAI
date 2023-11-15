@@ -80,26 +80,31 @@ def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
         print("New session being initialised")
         session['conversation'] = []
+        session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = False
+
         # Check for the unique ID cookie to identify returning users
         user_id = request.cookies.get('user_id')
         if user_id:
             print("Returning user with ID:", user_id)
             session['returning_user'] = True
-        if not user_id:
+        else:
             print("No user ID cookie found, setting new one")
             user_id = generate_unique_id()
             session['returning_user'] = False
+            # Set the cookie in the response after the request is processed
             response = make_response(render_template('chatbot2.html'))
             response.set_cookie('user_id', user_id, max_age=60*60*24*365*2)  # Expires in 2 years
             return response
-        print("Returning user with ID:", user_id)
-        session['returning_user'] = True
+
     else:
         print("Existing session found")
         session['returning_user'] = True  # This will now be true for all requests with an existing session
     print("Initial session:", session.get('conversation'))
+
+# List of exit words that should break the session
+exit_words = ["exit", "quit", "bye", "goodbye"]
 
 limiter = Limiter(
     app=chatbot, 
@@ -126,32 +131,42 @@ def ask():
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
-        session.clear()
+        # Reset the session keys instead of clearing everything.
+        session['returning_user'] = False
+        session['awaiting_decision'] = False
+        session['conversation_status'] = 'new'
+        session['cleared'] = True
+        session['conversation'] = []
+        session.modified = True #
+        
         return jsonify({"answer": goodbye_message, "status": "end_session"})
             
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
 
-    transcribed_text = session.get('transcribed_text', None) #pop from get
+    transcribed_text = session.get('transcribed_text', None)
     if transcribed_text:
         query = transcribed_text
         #del session['transcribed_text']
 
     query_vector = vectorizer.transform([query])
     
-    if session.get('returning_user', True):
+    if session.get('returning_user', False) and session.get('awaiting_decision', True):
+        session['conversation_status'] = 'active'
         session['conversation'] = [
             {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
         ]
         return_message = "Alright, let's start a new conversation."
     
-    elif session.get('returning_user', False):
+    elif session.get('conversation_status', 'new') == 'new':
         welcome_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
         session['conversation'].append({"role": "assistant", "content": welcome_message})
+        session['conversation_status'] = 'active'
         session.modified = True #
-        return jsonify({"answer": welcome_message})
+        #return jsonify({"answer": welcome_message})
    
+    #else session.get('conversation_status', 'active') == 'active':
     else:
         custom_prompt = {
             "role": "system",
@@ -230,4 +245,3 @@ def speech():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     chatbot.run(host='0.0.0.0', port=port)
-
