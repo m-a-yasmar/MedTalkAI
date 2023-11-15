@@ -133,26 +133,26 @@ def ask():
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
 
-    transcribed_text = session.pop('transcribed_text', None) #pop from get
+    transcribed_text = session.get('transcribed_text', None) #pop from get
     if transcribed_text:
         query = transcribed_text
         #del session['transcribed_text']
 
     query_vector = vectorizer.transform([query])
     
-    if session.get('returning_user', False):
+    if session.get('returning_user', True):
         session['conversation_status'] = 'active'
         session['conversation'] = [
             {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
         ]
         return_message = "Alright, let's start a new conversation."
     
-    elif session.get('conversation_status', 'new') == 'new':
+    elif session.get('returning_user', False):
         welcome_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         session.modified = True #
-        #return jsonify({"answer": welcome_message})
+        return jsonify({"answer": welcome_message})
    
     #else session.get('conversation_status', 'active') == 'active':
     else:
