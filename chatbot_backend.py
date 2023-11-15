@@ -120,8 +120,6 @@ def custom_limit_request_error():
     return jsonify({"answer": "Too many requests, please try again later"}), 429
 
 
-
-
 @chatbot.route('/ask', methods=['POST'])
 def ask():
     threshold = 0.9
@@ -129,7 +127,7 @@ def ask():
     max_tokens = 50
     tokens = query.split()
     exit_words = ["exit", "quit", "bye", "goodbye"] ##why is this repeated? which set is being used?
-    session['conversation'].append({"role": "user", "content": query})
+    #session['conversation'].append({"role": "user", "content": query})
    
 
     if any(word.lower() in query.lower() for word in exit_words):
