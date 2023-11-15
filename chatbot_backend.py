@@ -132,12 +132,12 @@ def ask():
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         # Reset the session keys instead of clearing everything.
-        session['conversation'] = []
         session['returning_user'] = False
-        session['awaiting_decision'] = True
+        session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = True
         session.modified = True #
+        session['conversation'] = []
         return jsonify({"answer": goodbye_message, "status": "end_session"})
             
     if len(tokens) > max_tokens:
