@@ -158,17 +158,9 @@ def ask():
             {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
         ]
         return_message = "Alright, let's start a new conversation."
-    elif:
-        return_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
-        session['awaiting_decision'] = False
-        session['conversation_status'] = 'active'
-    
-        session['conversation'].append({"role": "assistant", "content": return_message})
-        session.modified = True #
-        return jsonify({"answer": return_message})
     
     elif session.get('conversation_status', 'new') == 'new':
-        welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
+        welcome_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
         session.modified = True #
