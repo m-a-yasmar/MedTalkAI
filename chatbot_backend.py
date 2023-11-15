@@ -27,7 +27,7 @@ from flask_cors import CORS # for CORS
 
 CORS(chatbot)
 
-chatbot.secret_key = 'actual_voice_secret_medical_app11'  # Replace with your secret key
+chatbot.secret_key = 'actual_voice_secret_medical_app132'  # Replace with your secret key
 openai.api_key = os.environ.get('MEDTALK_API_KEY')
 
 
