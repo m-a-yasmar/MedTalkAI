@@ -152,7 +152,7 @@ def ask():
 
     query_vector = vectorizer.transform([query])
     
-    if session.get('returning_user', False) and session.get('awaiting_decision', True):
+    if session.get('returning_user', False) and session.pop('awaiting_decision', True):
         session['conversation_status'] = 'active'
         session['conversation'] = [
             {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
@@ -163,7 +163,6 @@ def ask():
         welcome_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
         session['conversation'].append({"role": "assistant", "content": welcome_message})
         session['conversation_status'] = 'active'
-        session.modified = True #
         #return jsonify({"answer": welcome_message})
    
     #else session.get('conversation_status', 'active') == 'active':
