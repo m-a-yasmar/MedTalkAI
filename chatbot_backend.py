@@ -82,28 +82,24 @@ def setup_conversation():
         session['conversation'] = []
         session['conversation_status'] = 'new'
         session['cleared'] = False
-
         # Check for the unique ID cookie to identify returning users
         user_id = request.cookies.get('user_id')
         if user_id:
             print("Returning user with ID:", user_id)
             session['returning_user'] = True
-        else:
+        if not user_id:
             print("No user ID cookie found, setting new one")
             user_id = generate_unique_id()
             session['returning_user'] = False
-            # Set the cookie in the response after the request is processed
             response = make_response(render_template('chatbot2.html'))
             response.set_cookie('user_id', user_id, max_age=60*60*24*365*2)  # Expires in 2 years
             return response
-
+        print("Returning user with ID:", user_id)
+        session['returning_user'] = True
     else:
         print("Existing session found")
         session['returning_user'] = True  # This will now be true for all requests with an existing session
     print("Initial session:", session.get('conversation'))
-
-# List of exit words that should break the session
-exit_words = ["exit", "quit", "bye", "goodbye"]
 
 limiter = Limiter(
     app=chatbot, 
@@ -130,20 +126,14 @@ def ask():
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
-        # Reset the session keys instead of clearing everything.
-        session['returning_user'] = False
-        session['conversation_status'] = 'new'
-        session['cleared'] = True
-        session['conversation'] = []
-        session.modified = True #
-        
+        session.clear()
         return jsonify({"answer": goodbye_message, "status": "end_session"})
             
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
         return jsonify({"answer": answer})
 
-    transcribed_text = session.get('transcribed_text', None)
+    transcribed_text = session.pop('transcribed_text', None) #pop from get
     if transcribed_text:
         query = transcribed_text
         #del session['transcribed_text']
