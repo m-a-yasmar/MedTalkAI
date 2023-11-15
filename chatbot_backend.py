@@ -128,14 +128,13 @@ def ask():
     tokens = query.split()
     exit_words = ["exit", "quit", "bye", "goodbye"] ##why is this repeated? which set is being used?
     session['conversation'].append({"role": "user", "content": query})
-   
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         # Reset the session keys instead of clearing everything.
         session['conversation'] = []
         session['returning_user'] = False
-        session['awaiting_decision'] = False
+        session['awaiting_decision'] = True
         session['conversation_status'] = 'new'
         session['cleared'] = True
         session.modified = True #
