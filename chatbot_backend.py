@@ -80,7 +80,6 @@ def setup_conversation():
     if 'conversation' not in session or session.get('cleared', False):
         print("New session being initialised")
         session['conversation'] = []
-        session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = False
 
@@ -133,7 +132,6 @@ def ask():
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
         # Reset the session keys instead of clearing everything.
         session['returning_user'] = False
-        session['awaiting_decision'] = False
         session['conversation_status'] = 'new'
         session['cleared'] = True
         session['conversation'] = []
@@ -152,7 +150,7 @@ def ask():
 
     query_vector = vectorizer.transform([query])
     
-    if session.get('returning_user', False) and session.get('awaiting_decision', True):
+    if session.get('returning_user', False):
         session['conversation_status'] = 'active'
         session['conversation'] = [
             {"role": "system", "content": "You are a friendly professional medical receptionist. Your primary responsibilities include collecting patient information, responding to queries with compassion, and helping them arrange appointments with suitable healthcare professionals."}
