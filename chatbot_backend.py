@@ -127,7 +127,7 @@ def ask():
     max_tokens = 50
     tokens = query.split()
     exit_words = ["exit", "quit", "bye", "goodbye"] ##why is this repeated? which set is being used?
-    #session['conversation'].append({"role": "user", "content": query})
+    session['conversation'].append({"role": "user", "content": query})
    
 
     if any(word.lower() in query.lower() for word in exit_words):
