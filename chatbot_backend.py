@@ -166,7 +166,8 @@ def ask():
         session.modified = True #
         #return jsonify({"answer": welcome_message})
    
-    else session.get('conversation_status', 'active') == 'active':
+    #else session.get('conversation_status', 'active') == 'active':
+    else:
         custom_prompt = {
             "role": "system",
             "content": """"As a skilled medical receptionist, your expertise lies in creating a welcoming and efficient experience for patients as they navigate their healthcare journey. With a courteous and attentive approach, 
