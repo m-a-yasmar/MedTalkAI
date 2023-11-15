@@ -128,26 +128,9 @@ def ask():
     query = request.json.get('query')
     max_tokens = 50
     tokens = query.split()
-    exit_words = ["exit", "quit", "bye", "goodbye"]
+    exit_words = ["exit", "quit", "bye", "goodbye"] ##why is this repeated? which set is being used?
     session['conversation'].append({"role": "user", "content": query})
-
-    if query == 'start new session':
-        session['conversation'] = []
-        session['returning_user'] = False
-        session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
-        session['cleared'] = False
-        session.modified = True #
-        return jsonify({"answer": "Welcome back! How can I assist you today?", "status": "success"})
-        
-    if query.lower() == 'continue session':
-        session['conversation'] = []
-        session['returning_user'] = True
-        session['awaiting_decision'] = True
-        session['cleared'] = False
-        session.modified = True
-        return jsonify({"answer": "Continuing from where we left off. What would you like to discuss?"})
-    
+   
 
     if any(word.lower() in query.lower() for word in exit_words):
         goodbye_message = "Thank you for your visit. Have a wonderful day. Goodbye!"
@@ -159,14 +142,6 @@ def ask():
         session['cleared'] = True
         session.modified = True #
         return jsonify({"answer": goodbye_message, "status": "end_session"})
-
-    if session.get('cleared', False):
-        session['conversation'] = []
-        session['returning_user'] = False
-        session['awaiting_decision'] = False
-        session['conversation_status'] = 'new'
-        session['cleared'] = False
-        session.modified = True #
             
     if len(tokens) > max_tokens:
         answer = "Your query is too long. Please limit it to 50 words or less."
