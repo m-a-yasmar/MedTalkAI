@@ -171,7 +171,6 @@ def ask():
         session['conversation'].append({"role": "assistant", "content": return_message})
         session.modified = True #
         return jsonify({"answer": return_message})
-
     
     elif session.get('conversation_status', 'new') == 'new':
         welcome_message = "Hello and a warm welcome! I'm Sam, your medical receptionist here to assist you."
@@ -179,10 +178,9 @@ def ask():
         session['conversation_status'] = 'active'
         session.modified = True #
         #return jsonify({"answer": welcome_message})
-    
    
     elif session.get('conversation_status', 'active') == 'active':
-         
+        session['conversation'] = []
         custom_prompt = {
             "role": "system",
             "content": """"As a skilled medical receptionist, your expertise lies in creating a welcoming and efficient experience for patients as they navigate their healthcare journey. With a courteous and attentive approach, 
@@ -215,7 +213,6 @@ def ask():
                            If ask questions about the fees or how much we charge, answer the question in the following manner:
                            'The fees for a non specialist visit may range from $4,000 - $6,000, without insurance, while for specialist, this fee may range from $12,000 to $14,000. The nature of your insurance coverage amy determine by how much this is reduced.'
                             """}
-        
         
         conversation_with_prompt = [custom_prompt] + session['conversation']
 
