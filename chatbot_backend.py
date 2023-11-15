@@ -103,8 +103,6 @@ def setup_conversation():
         session['returning_user'] = True  # This will now be true for all requests with an existing session
     print("Initial session:", session.get('conversation'))
 
-# List of exit words that should break the session
-exit_words = ["exit", "quit", "bye", "goodbye"]
 
 limiter = Limiter(
     app=chatbot, 
@@ -137,7 +135,6 @@ def ask():
         session['conversation_status'] = 'new'
         session['cleared'] = True
         session['conversation'] = []
-        session.modified = True #
         
         return jsonify({"answer": goodbye_message, "status": "end_session"})
             
@@ -159,12 +156,7 @@ def ask():
         ]
         return_message = "Alright, let's start a new conversation."
     
-    elif session.get('conversation_status', 'new') == 'new':
-        welcome_message = "Hello and a warm welcome! I'm Sam, your AI medical receptionist here to assist you. Before we proceed may I have your full name please?"
-        session['conversation'].append({"role": "assistant", "content": welcome_message})
-        session['conversation_status'] = 'active'
-        session.modified = True #
-        #return jsonify({"answer": welcome_message})
+
    
     #else session.get('conversation_status', 'active') == 'active':
     else:
