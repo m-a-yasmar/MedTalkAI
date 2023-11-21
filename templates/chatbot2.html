@@ -41,6 +41,9 @@
             flex: 1;
             padding: 1rem;
             overflow-y: scroll;
+	    display: flex;           
+            align-items: center;     
+            justify-content: center; 
         }
         .message {
             margin-bottom: 20px;
@@ -86,16 +89,14 @@
             cursor: pointer;
         }
         #start-chat-btn {
-            padding: 1px 1px;
+            padding: 10px 20px;
             font-size: 14px;
             background: var(--button-bg);
             color: var(--primary-text-color);
             border: none;
             cursor: pointer;
-            display: block;
-            width: 100px;
-            margin: 1px auto;
-            text-align: left;
+	    margin: 0;
+            text-align: center;
         }
     </style>
 </head>
